@@ -1,0 +1,1813 @@
+{"success":true}[Resource from powerbi-modeling-mcp at tmdl://Medidas%20Resultado.tmdl] table 'Medidas Resultado'
+	lineageTag: 2e48f0e9-869b-4db9-91ee-014a64e40bf9
+
+	measure 'Ventas Nacionales' = ```
+			((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "41203205"))
+			+(CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "41209505")) 
+			+(CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "41209510"))
+			+(CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "41359505"))
+			+(CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "41209520")))*-1
+			```
+		displayFolder: Total Ventas Netas
+		lineageTag: d57a49da-69f8-427d-a260-10a999f2cd81
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ventas Exportaciones' = ```
+			((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "41203215")) 
+			+ (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "41209515"))
+			+ (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "41359515"))
+			+ (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42050510"))
+			+ (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42050520")))*-1
+			```
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: 21caecda-87bd-4171-9a45-49d314a74646
+
+	measure 'Ventas Servicios' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42356505"))*-1
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: 6589d2bb-2813-4f11-aa74-4c16c90f1248
+
+	measure 'Ventas MP' =
+			((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42050505"))
+			+ (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42050515"))
+			+ (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42054505")))*-1
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: 6f53fed2-2c14-49ae-9454-c95d0a5626e6
+
+	measure 'Devoluciones en Ventas' = ```
+			
+			((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "4175", ISBLANK(Balance[Lvl4])))
+			+ (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "4275", ISBLANK(Balance[Lvl4]))) 
+			- (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42750510") 
+			- (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42750520"))))*-1
+			```
+		displayFolder: Total Ventas Netas
+		lineageTag: 2d614d36-3497-4e48-8699-f87462328bd9
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Ventas Descuentos Financieros' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "53053505"))*-1
+		displayFolder: Total Ventas Netas
+		lineageTag: ce92e617-b8bf-45e8-a030-e1c9e05744c3
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Total Ventas Netas' = [Ventas Nacionales] + [Ventas Exportaciones] + [Ventas Servicios] + [Ventas MP] + [Devoluciones en Ventas] + [Ventas Descuentos Financieros]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: a9062bdb-b2f7-455f-aaf7-c5bd5f15d49d
+
+	measure 'Costos Productos Vendidos' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl2] = "61", ISBLANK(Balance[Lvl3])))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Costo Ventas
+		lineageTag: 53f5c355-2a55-4335-8872-d118db1fa91d
+
+	measure 'Descuentos Financieros Aprovechados' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42104005"))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Costo Ventas
+		lineageTag: d1ee86c3-03e3-49c4-8358-a35ec496d8dd
+
+	measure 'Total Costo Ventas' = [Costos Productos Vendidos] //+ [Descuentos Financieros Aprovechados]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Costo Ventas
+		lineageTag: 3c6088f8-19e0-4a29-a47d-e3958bf0c837
+
+	measure 'Utilidad Bruta en Ventas' = [Total Ventas Netas] - [Total Costo Ventas Resultado]
+		displayFolder: Utilidad Bruta en Ventas
+		lineageTag: e5551d91-9f94-455f-b69e-a28f3fff6670
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gastos Administracion' = ((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl2] = "51", ISBLANK(Balance[Lvl3]))) - [Contribucion especial 4x1000]) - (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "5199", ISBLANK(Balance[Lvl4])))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Gastos Operativos
+		lineageTag: e72518dd-40f2-465e-a2b5-fc48bc92be55
+
+	measure 'Contribucion especial 4x1000' = ```
+			CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "51159510") 
+			+ (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "51159515"))
+			```
+		displayFolder: Total Gastos No Operativos
+		lineageTag: d8b8648a-efdc-48ec-bb37-ed8f3aae8b2d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gastos Ventas' = ((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl2] = "52", ISBLANK(Balance[Lvl3])))) -((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "52991090")))
+		displayFolder: Total Gastos Operativos
+		lineageTag: b5877038-8903-4d66-91c8-c7f6af3a3fb1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Descuentos Comerciales' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42104010"))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Gastos Operativos
+		lineageTag: 3b5b80e2-3688-4ce4-8248-615216b65dd1
+
+	measure 'Gastos Operativos' = ```
+			[Gastos Administracion] + [Gastos Ventas] 
+			--+ [Descuentos Comerciales]
+			```
+		displayFolder: Total Gastos Operativos
+		lineageTag: a0c31937-3335-46b5-ac56-8b6225301a36
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Utilidad Operacional' = [Utilidad Bruta en Ventas] - [Gastos Operativos]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Utilidad Operacional
+		lineageTag: e3feec3b-1cb1-47b1-8a31-be5045e20f25
+
+	measure 'Gastos Bancarios' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "53050505"))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 0f594516-bd1d-48bd-9fab-a38af7060abd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gastos Comisiones' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "53051505"))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 86be1195-db67-4ff9-9418-be2261b61a16
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gastos Intereses' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl4] = "530520", ISBLANK(Balance[Account])))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 308893da-6963-41f8-8642-be7a4d83f7e6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gastos Diferencia en Cambio' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl4] = "530525", ISBLANK(Balance[Account])))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: b1074080-4c02-4529-9e38-80354c2f8b46
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Otros Gastos Financieros' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl4] = "530595", ISBLANK(Balance[Account])))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: cd5d12ed-117b-406d-b309-de5b946df53f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Perdida en retiro bienes' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "5310", ISBLANK(Balance[Lvl4])))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 1074b23e-2466-46ae-8d8a-59eebf7176ec
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Impuestos Asumidos - Gastos no deducibles' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "5315", ISBLANK(Balance[Lvl4])))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: c3ee515c-14d8-4633-909b-3baf57495074
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gastos Extraordinarios' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "5395", ISBLANK(Balance[Lvl4])))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 39f1159b-55d6-434e-bbea-b7c4883f70e2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Provision Cartera e Inventarios' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "5199", ISBLANK(Balance[Lvl4]))) + (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "5299", ISBLANK(Balance[Lvl4])))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 64cc547b-fde0-4f27-b4b1-d347eb60fc86
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gastos No Operativos' = [Gastos Bancarios] + [Gastos Comisiones] + [Gastos Intereses] + [Gastos Diferencia en Cambio] + [Otros Gastos Financieros] + [Perdida en retiro bienes] + [Contribucion especial 4x1000] + [Impuestos Asumidos - Gastos no deducibles] + [Gastos Extraordinarios] + [Provision Cartera e Inventarios]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 00f913a4-0093-4603-8abd-623e2cc38171
+
+	measure 'Ingresos Intereses' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl4] = "421005", ISBLANK(Balance[Account])))*-1
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 5673e336-4868-4396-9485-5489fc56fe6d
+
+	measure 'Ingresos Diferencia en Cambio' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl4] = "421020", ISBLANK(Balance[Account])))*-1
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: aaa4c093-65a2-4c0c-baec-69bfac7a702f
+
+	measure 'Ingresos Cobertura TC' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl4] = "421095", ISBLANK(Balance[Account])))*-1
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 90cdb3d2-89f9-47d4-81f9-e398976eb01f
+
+	measure 'Ingresos Arrendamientos' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "4220", ISBLANK(Balance[Lvl4])))*-1
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: b08f657c-5558-4c9d-977d-ca7100a4a712
+
+	measure 'Ingreso Comisiones' = ```
+			(CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "4225", ISBLANK(Balance[Lvl4])))*-1 
+			```
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: c2895c0f-41fb-4f9b-a10f-3264f04a7160
+
+	measure 'Ingresos Fletes' = (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl4] = "423580", ISBLANK(Balance[Account])))*-1 - (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42750510")) - (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Account] = "42750520"))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 54c053f9-0d05-41dc-a4fc-7d3426886036
+
+	measure 'Ingresos Utilidad PPE' = ((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "4245", ISBLANK(Balance[Lvl4])))*-1)
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 643a4bc4-519a-4ec1-b644-ee17a927e59d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ingresos Recuperaciones' = ((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "4250", ISBLANK(Balance[Lvl4])))*-1)
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: d3c4e47a-bc74-43fb-ae69-e7c0cacfc939
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ingresos Indemnizaciones' = ((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "4255", ISBLANK(Balance[Lvl4])))*-1)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: eb3de0c2-252a-40aa-b836-ef716111e965
+
+	measure 'Ingresos Ejercicios Anteriores' = ((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "4265", ISBLANK(Balance[Lvl4])))*-1)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 3886ba29-13f6-4e56-af91-f879861dd681
+
+	measure 'Ingresos Diversos' = ((CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "4295", ISBLANK(Balance[Lvl4]))) * -1)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 47d005fb-43bb-440c-86a8-b070b16cfa33
+
+	measure 'Ingresos No Operativos' = [Ingresos Intereses] + [Ingresos Diferencia en Cambio] + [Ingresos Cobertura TC] + [Ingresos Arrendamientos] + [Ingreso Comisiones] + [Ingresos Fletes] + [Ingresos Utilidad PPE] + [Ingresos Recuperaciones] + [Ingresos Indemnizaciones] + [Ingresos Ejercicios Anteriores] + [Ingresos Diversos]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 953ba03d-9ee3-49df-9455-52d1f9d76759
+
+	measure 'Utilidad Antes de Impuestos' = [Utilidad Operacional] - [Gastos No Operativos] + [Ingresos No Operativos]
+		displayFolder: Utilidad Antes de Impuestos
+		lineageTag: 283bad20-e99a-4a9c-843a-675c6974b91a
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Provisión Impuesto de Renta' =
+			/*([Utilidad Antes de Impuestos] +
+			(CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "9251", ISBLANK(Balance[Lvl4])))
+			+ (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "9252", ISBLANK(Balance[Lvl4])))
+			+ (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl3] = "9253", ISBLANK(Balance[Lvl4])))
+			+ (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl4] = "924210", ISBLANK(Balance[Account]))))*0.35
+			- (CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl4] = "924295", ISBLANK(Balance[Account])))*/
+			(CALCULATE(MAX(Balance[Saldo del Mes]), Balance[Lvl2] = "54", ISBLANK(Balance[Lvl3]), Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Provision Impuesto de Renta
+		lineageTag: beed1526-5fda-4284-9d85-8069d9cf8270
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Utilidad del Periodo' = [Utilidad Antes de Impuestos] - [Provisión Impuesto de Renta]
+		displayFolder: Utilidad del Periodo
+		lineageTag: 32a2686e-35d9-4ab1-98a9-fbca2a401b94
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Acum Ventas Nacionales' =
+			
+			(CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "41203205", Balance[Mes] = MAX(Balance[Mes]))
+			+ CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "41209505", Balance[Mes] = MAX(Balance[Mes]))
+			+ CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "41209510", Balance[Mes] = MAX(Balance[Mes]))
+			+ CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "41209520", Balance[Mes] = MAX(Balance[Mes]))
+			+ CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "41359505", Balance[Mes] = MAX(Balance[Mes]))) * -1
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 72e62b3e-48e4-4da2-b29b-7615c9a1bf99
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Ventas Exportaciones' = ```
+			((CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "41203215", Balance[Mes] = MAX(Balance[Mes]))) 
+			+ (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "41209515", Balance[Mes] = MAX(Balance[Mes])))
+			+ (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "41359515", Balance[Mes] = MAX(Balance[Mes])))
+			+ (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42050510", Balance[Mes] = MAX(Balance[Mes])))
+			+ (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42050520", Balance[Mes] = MAX(Balance[Mes]))))*-1
+			```
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 57f643a9-22cf-45d6-a2a9-7bb1f35704d1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Ventas Servicios' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42356505", Balance[Mes] = MAX(Balance[Mes])))*-1
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: b9a142b4-32dc-49e2-ad1d-754c76e5a2e3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Ventas MP' =
+			((CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42050505",Balance[Mes] = MAX(Balance[Mes])))
+			+ (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42050515",Balance[Mes] = MAX(Balance[Mes])))
+			+ (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42054505",Balance[Mes] = MAX(Balance[Mes]))))*-1
+		formatString: #,0.00
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: f6643285-53e3-40d0-95b3-e163ef8f483f
+
+	measure 'Acum Devoluciones en Venta' =
+			
+			(((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "4175", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))
+			+ (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "4275", ISBLANK(Balance[Lvl4]),Balance[Mes] = MAX(Balance[Mes])))
+			- (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42750510", Balance[Mes] = MAX(Balance[Mes])))
+			- (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42750520", Balance[Mes] = MAX(Balance[Mes]))))*-1)
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: b3017c70-7a13-4e3c-b213-e2e35e808be1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Descuentos Financieros' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "53053505", Balance[Mes] = MAX(Balance[Mes])))*-1
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 10d2e645-9b78-4b26-9bf9-ff5ca02a1e00
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Total Ventas Netas' = [Acum Ventas Nacionales] + [Acum Ventas Exportaciones] + [Acum Ventas Servicios] + [Acum Ventas MP] + [Acum Devoluciones en Venta] + [Acum Descuentos Financieros]
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 959cf81f-cc87-442b-a235-2b2dc54d5091
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Costos Productos Vendidos' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl2] = "61", ISBLANK(Balance[Lvl3]), Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: 76562fa6-cee8-42d7-a7e5-0020eba6eb4f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Descuentos Financieros Aprovechados' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42104005", Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: 5cdc410a-3bc2-4121-abea-86e903562dcc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Total Costo Ventas' = [Acum Costos Productos Vendidos] + [Acum Descuentos Financieros Aprovechados]
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: 078adb02-0314-45df-bc0a-2090942a511e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Utilidad Bruta en Ventas' = [Acum Total Ventas Netas] - [Acum Total Costo Ventas]
+		displayFolder: Acum Utilidad Bruta en Ventas
+		lineageTag: 8330c7b9-d12a-44d9-98d1-c881546d1ae0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Gastos Administracion' = ((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl2] = "51", ISBLANK(Balance[Lvl3]), Balance[Mes] = MAX(Balance[Mes]))) - [5115 Acum Contibucion especial 4x1000]) - (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "5199", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 67213827-1362-4dfa-bcda-003f20f3eb23
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '5115 Acum Contibucion especial 4x1000' = ```
+			CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "51159510", Balance[Mes] = MAX(Balance[Mes])) 
+			+ (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "51159515", Balance[Mes] = MAX(Balance[Mes])))
+			```
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: 5052af85-33ca-4e78-a7a8-556ffa7f671f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '5199-5299 Acum Provision Cartera e Inventarios' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "5199", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes]))) + (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "5299", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: 386ba580-8e39-4a93-8a86-3146e8cc5f53
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Gastos Ventas' =
+			((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl2] = "52", ISBLANK(Balance[Lvl3]), Balance[Mes] = MAX(Balance[Mes])))
+			                        - (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "52991090", Balance[Mes] = MAX(Balance[Mes]))))
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 09c804ba-7c9e-40cb-a4ec-c28f9ba3e02a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Descuentos Comerciales' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42104010", Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 8abec3db-b6f0-4b24-8a2d-6737b98267dd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Total Gastos Operativos' = [Acum Gastos Administracion] + [Acum Gastos Ventas] + [Acum Descuentos Comerciales]
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: e961d278-551e-43d7-bc45-a87316d41c35
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Utilidad Operacional' = [Acum Utilidad Bruta en Ventas] - [Acum Total Gastos Operativos]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Utilidad Operacional
+		lineageTag: 5a5f5b90-59cc-4eb1-bfc2-edce28448f20
+
+	measure 'Acum Gastos Bancarios' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "53050505", Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: 85504a84-b0fd-4fd3-84cb-7ec20aa18ffa
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Gastos Comisiones' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "53051505", Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: 602978ef-c952-4ade-a4c5-83d3252370f9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '530520 Acum Gastos Intereses' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "530520", ISBLANK(Balance[Account]), Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: 9aa96cb2-4de9-4d46-89be-2e51c66baf94
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '530525 Acum Gastos Diferencia en Cambio' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "530525", ISBLANK(Balance[Account]), Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: bee41481-a187-4bd4-840f-11fe3ab331fd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '530595 Acum Otros Gastos Financieros' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "530595", ISBLANK(Balance[Account]), Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: 2d062e14-3d36-4298-82cb-61ed237a1476
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '5310 Acum Perdida en retiro bienes' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "5310", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: 1272d79e-6beb-4738-bdce-407c6b2e2259
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '5315 Acum Impuestos Asumidos - Gastos no deducibles' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "5315", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: 718e7ea8-0ccd-485c-a80f-46fe1948ec59
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '5395 Acum Gastos Extraordinarios' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "5395", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: e8798f53-5914-43d0-9cf3-83a851f3f93b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Total Gastos No Operativos' = [Acum Gastos Bancarios] + [Acum Gastos Comisiones] + [530520 Acum Gastos Intereses] + [530525 Acum Gastos Diferencia en Cambio] + [530595 Acum Otros Gastos Financieros] + [5310 Acum Perdida en retiro bienes] + [5115 Acum Contibucion especial 4x1000] + [5315 Acum Impuestos Asumidos - Gastos no deducibles] + [5395 Acum Gastos Extraordinarios] + [5199-5299 Acum Provision Cartera e Inventarios]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: fd759222-d94c-46e4-87f5-130d465ebe9f
+
+	measure '421005 Acum Intereses' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "421005", ISBLANK(Balance[Account]), Balance[Mes] = MAX(Balance[Mes])))*-1
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: 0e1bd8ff-8510-498a-86cd-1c58462d2cb8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '421020 Acum Diferencia en Cambio' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "421020", ISBLANK(Balance[Account]), Balance[Mes] = MAX(Balance[Mes])))*-1
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: 69a4a8ae-7313-457e-89b1-6df4805c4460
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '421095 Acum Cobertura TC' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "421095", ISBLANK(Balance[Account]),Balance[Mes] = MAX(Balance[Mes])))*-1
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: cb93b84d-1e24-4e27-a491-3ebd76ef53df
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '4220 Acum Arrend/to' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "4220", ISBLANK(Balance[Lvl4]),Balance[Mes] = MAX(Balance[Mes])))*-1
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: 2918f2a1-7895-489e-ad9d-a4fefcda8b41
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '4225 Acum Comisiones' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "4225", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))*-1
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: 93ab7da7-f4b8-413e-8dbf-b60cd4d2fc31
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '423580 Acum Fletes' = ```
+			(CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "423580", ISBLANK(Balance[Account]), Balance[Mes] = MAX(Balance[Mes])))*-1 - (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42750510", Balance[Mes] = MAX(Balance[Mes]))) 
+			- (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42750520", Balance[Mes] = MAX(Balance[Mes])))
+			```
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: 1f3e605b-eb87-42b0-b41d-3f8d74bf15b9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '4245 Acum Utilidad PPE' = ((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "4245", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))*-1)
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: da8675b7-22f8-4931-b17b-a368736e487b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '4250 Acum Recuperaciones' = ((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "4250", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))*-1)
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: 93af711d-7ef3-4bd0-a234-44f24b1368e6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '4265 Acum Ingresos Ejercicios Anteriores' = ((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "4265", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))*-1)
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: 5e801232-5caa-4428-8bcc-8b0288586410
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '4255 Acum Indemnizaciones' = ((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "4255", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))*-1)
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: f28f67a5-181d-4351-891c-8db778d21397
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '4295 Acum Diversos' = ((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "4295", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes]))) * -1)
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: 7cb00c45-e8d0-47df-a425-f2d42214efe2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Total Ingresos No Operativos' = [421005 Acum Intereses] + [421020 Acum Diferencia en Cambio] + [421095 Acum Cobertura TC] + [4220 Acum Arrend/to] + [4225 Acum Comisiones] + [423580 Acum Fletes] + [4245 Acum Utilidad PPE] + [4250 Acum Recuperaciones] + [4255 Acum Indemnizaciones] + [4265 Acum Ingresos Ejercicios Anteriores] + [4295 Acum Diversos]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: 45329a61-2a81-4a14-bec5-720b3a611526
+
+	measure 'Acum Utilidad Antes de Impuestos' = [Acum Utilidad Operacional] - [Acum Total Gastos No Operativos] + [Acum Total Ingresos No Operativos]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Utilidad Antes de Impuestos
+		lineageTag: d5b00df8-fbfd-4a1e-9a1d-0d5645492504
+
+	measure '54 Acum Provision Impuesto de Renta (Resultado)' =
+			/*([Acum Utilidad Antes de Impuestos] -
+			((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "9251", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))
+			+ (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "9252", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))
+			+ (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "9253", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))
+			+ (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "924210", ISBLANK(Balance[Account]), Balance[Mes] = MAX(Balance[Mes])))))*0.35
+			- (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "924295", ISBLANK(Balance[Account]), Balance[Mes] = MAX(Balance[Mes])))
+			- (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "135530", ISBLANK(Balance[Account]), Balance[Mes] = MAX(Balance[Mes])))*/
+			(CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl2] = "54", ISBLANK(Balance[Lvl3]), Balance[Mes] = MAX(Balance[Mes])))
+		displayFolder: Acum Provision Impuesto de Renta (Resultado)
+		lineageTag: 58457705-68c8-4243-bb6d-4a8ca244d452
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Utilidad del Periodo' = [Acum Utilidad Antes de Impuestos] - [54 Acum Provision Impuesto de Renta (Resultado)]
+		displayFolder: Acum Utilidad del Periodo
+		lineageTag: a7732544-f672-44db-a19a-4b308ec57d06
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Label Utilidad Antes de Impuesto' = "Ut. Antes Impto"
+		displayFolder: Utilidad Antes de Impuestos
+		lineageTag: cdaf3c6d-ce53-454e-9626-70301b03d86c
+
+	measure 'M.A Utilidad Antes de Impuesto' = CALCULATE([Utilidad Antes de Impuestos], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Utilidad Antes de Impuestos
+		lineageTag: 4c81a055-c175-4c41-98b5-f46afa110cf0
+
+	measure 'Label Provisión impuesto renta' = "Prov. Impto Renta"
+		displayFolder: Provision Impuesto de Renta
+		lineageTag: 217b5a81-7d0e-41ba-b246-f6189f6e20d0
+
+	measure 'M.A Provisión impuesto renta' = CALCULATE([Provisión Impuesto de Renta], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Provision Impuesto de Renta
+		lineageTag: af8fbf1d-44a2-42d0-a6f5-684669bd4851
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Label Utilidad del Periodo' = "Ut. del Periodo"
+		displayFolder: Utilidad del Periodo
+		lineageTag: c4ec1761-803a-4e97-b56f-b1cb642f0ba8
+
+	measure 'M.A Utilidad del Periodo' = [M.A Utilidad Antes de Impuesto] - [M.A Provisión impuesto renta]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Utilidad del Periodo
+		lineageTag: 46d6c212-94ed-43d2-a9d3-43f1e376d0dc
+
+	measure 'Var Utilidad Antes de Impuestos' = [Utilidad Antes de Impuestos] - [M.A Utilidad Antes de Impuesto]
+		displayFolder: Utilidad Antes de Impuestos
+		lineageTag: 46be6f29-6c7e-40e9-b4a8-9745db0b11c2
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Utilidad Antes de Impuestos' = DIVIDE([Var Utilidad Antes de Impuestos], [M.A Utilidad Antes de Impuesto])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Utilidad Antes de Impuestos
+		lineageTag: 82103f93-8ae8-4e2f-8275-3cb4429f552c
+
+	measure 'Label Utilidad Operacional' = "Ut. Operacional"
+		displayFolder: Utilidad Operacional
+		lineageTag: 3d99aea5-0966-4315-a264-ca438192bac5
+
+	measure 'M.A Utilidad Operacional' = CALCULATE([Utilidad Operacional], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Utilidad Operacional
+		lineageTag: fd0fafbc-73ae-4d6c-9bcc-82a411afa7bf
+
+	measure 'Var Utilidad Operacional' = [Utilidad Operacional] - [M.A Utilidad Operacional]
+		displayFolder: Utilidad Operacional
+		lineageTag: d78ebdbb-7991-4244-a24c-9563084ff25a
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Utilidad Operacional' = DIVIDE([Var Utilidad Operacional], [M.A Utilidad Operacional])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Utilidad Operacional
+		lineageTag: fad11fc6-488f-45e8-8fe5-36087bc9c716
+
+	measure 'Label Gastos no operativos' = "Gtos No Opertvos"
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 2e3974bd-c3b1-4763-afe9-c25be98d629b
+
+	measure 'M.A Gastos no operativos' = CALCULATE([Gastos No Operativos], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 78b15057-98b1-4463-bb0d-5b3d1152e8b4
+
+	measure 'Var Gastos no operativos' = [Gastos No Operativos] - [M.A Gastos no operativos]
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 6acaeefa-d27b-41a7-9bf3-34b9a351a44e
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Gastos no operativos' = DIVIDE([Var Gastos no operativos], [M.A Gastos no operativos])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 12f87a55-bed1-4d8f-a4c1-d9cc5a912f15
+
+	measure 'Label Ingresos no operativos' = "Ingr. No Opertvos"
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 0a3eb38d-b6db-4151-96ea-7181304260b1
+
+	measure 'M.A Ingresos no operativos' = CALCULATE([Ingresos No Operativos], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 76ecb1fd-1f2a-460f-a1c9-98593cf6969c
+
+	measure 'Var Ingresos no operativos' = [Ingresos No Operativos] - [M.A Ingresos no operativos]
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 2daa2f63-86b3-4ecb-b074-ec2552c8e724
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Ingresos no operativos' = DIVIDE([Var Ingresos no operativos], [M.A Ingresos no operativos])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: d7ea2412-5a40-4419-b82e-da14151d56f1
+
+	measure 'Label Gastos operativos' = "Gtos Operativos"
+		displayFolder: Total Gastos Operativos
+		lineageTag: 2a14f45a-ba8e-411c-b1b6-f5365282f9e5
+
+	measure 'M.A Gastos Operativos' = CALCULATE([Gastos Operativos], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Gastos Operativos
+		lineageTag: e0550e6b-b7bf-4eeb-9212-2794cabee4bc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Gasto operativos' = [Gastos Operativos] - [M.A Gastos Operativos]
+		displayFolder: Total Gastos Operativos
+		lineageTag: 9c0fd821-5a87-4de6-ab21-b9f73ba95b5f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Gastos Operativos' = DIVIDE([Var Gasto operativos], [M.A Gastos Operativos])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos Operativos
+		lineageTag: f1f07559-4a94-4090-8b65-b35ba81ea3ed
+
+	measure 'Label Utilidad Bruta en ventas' = "Ut. Bruta Vtas"
+		displayFolder: Utilidad Bruta en Ventas
+		lineageTag: 73c4fb2b-b1cc-47e1-802c-88f3acf0219b
+
+	measure 'M.A Utilidad Bruta en Ventas' = CALCULATE([Utilidad Bruta en Ventas], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Utilidad Bruta en Ventas
+		lineageTag: dfdad650-6f4b-4742-aa29-5a374ee9500a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Utilidad Bruta en Ventas' = [Utilidad Bruta en Ventas] - [M.A Utilidad Bruta en Ventas]
+		displayFolder: Utilidad Bruta en Ventas
+		lineageTag: 13632029-ba99-402c-8cde-c77bfd25353d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Utilidad bruta en ventas' = DIVIDE([Var Utilidad Bruta en Ventas], [M.A Utilidad Bruta en Ventas])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Utilidad Bruta en Ventas
+		lineageTag: b20bfe80-986a-4305-b678-41391e287201
+
+	measure 'Label Gastos bancarios' = "Gtos Bancarios"
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 60be9861-4df5-4c81-aeb2-ae9c51379ae3
+
+	measure 'M.A Gastos Bancarios' = CALCULATE([Gastos Bancarios], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: a9cb247d-3a23-46bb-b661-599b8fb38f33
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Gastos Bancarios' = [Gastos Bancarios] - [M.A Gastos Bancarios]
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 92cd3e25-4fbf-47a7-b0a1-ed902e1444b8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Gastos Bancarios' = DIVIDE([Var Gastos Bancarios], [M.A Gastos Bancarios])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 0e2a45e2-9795-468e-8e47-fe1f09964b7b
+
+	measure 'Label Comisiones' = "Comisiones"
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: b4d11a0a-12d9-4a7f-bf80-51803102bad4
+
+	measure 'M.A Ingreso Comisiones' = CALCULATE([Ingreso Comisiones], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: e670515e-a4fa-44d3-8ccd-c0b5c6db5e60
+
+	measure 'Var Ingreso Comisiones' = [Ingreso Comisiones] - [M.A Ingreso Comisiones]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 5730f8db-f2bf-42b5-b920-c216d0773f1e
+
+	measure '% Var Comisiones' = DIVIDE([Var Ingreso Comisiones], [M.A Ingreso Comisiones],0)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 73bc9088-7294-4428-a266-e1eceee421b7
+
+	measure 'M.A Gastos Comisiones' = CALCULATE([Gastos Comisiones], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: f45c0fda-adc1-40f4-b24b-f92b5ede625b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Gastos Comisiones' = [Gastos Comisiones] - [M.A Gastos Comisiones]
+		displayFolder: Total Gastos No Operativos
+		lineageTag: d67bcd0e-cee9-42a7-b36c-3b2f3e4d5e23
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Gastos Comisiones' = DIVIDE([Var Gastos Comisiones], [M.A Gastos Comisiones])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos No Operativos
+		lineageTag: e32ac700-955a-44c0-98a3-152d1360aa3f
+
+	measure 'Label Intereses' = "Intereses"
+		displayFolder: Total Gastos No Operativos
+		lineageTag: a55545f4-dd4c-42c6-bea0-5283ee25d0b0
+
+	measure 'M.A Gastos Intereses' = CALCULATE([Gastos Intereses], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 36340e40-0508-4ce3-8c3f-41a707656505
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Gastos Intereses' = [Gastos Intereses] - [M.A Gastos Intereses]
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 14e04562-3c7a-4e8a-9a7d-304dc7587982
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Gastos Intereses' = DIVIDE([Var Gastos Intereses], [M.A Gastos Intereses])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos No Operativos
+		lineageTag: c3815d26-7b01-426a-8523-19e5708a6dfa
+
+	measure 'Label Diferencia en cambio' = "Dif. en Cambio"
+		displayFolder: Total Gastos No Operativos
+		lineageTag: b45d65d3-e9b9-463f-a5bf-3d9b343b7580
+
+	measure 'M.A Gastos Diferencia en cambio' = CALCULATE([Gastos Diferencia en Cambio], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: f628fd8f-f72b-47ac-9ef6-a4e204ed1b83
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Gastos Diferencia en cambio' = [Gastos Diferencia en Cambio] - [M.A Gastos Diferencia en cambio]
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 0b8cf1d7-1427-4db2-b6b4-6c818e82f8a0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Gastos Diferencia en cambio' = DIVIDE([Var Gastos Diferencia en cambio], [M.A Gastos Diferencia en cambio])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 49fce0a9-b88e-4ec6-8d89-31128e718b57
+
+	measure 'Label Otros Gastos Financieros' = "Otros Gtos Finan."
+		displayFolder: Total Gastos No Operativos
+		lineageTag: e9d94ba3-fba2-43ea-9802-0f2579bb4187
+
+	measure 'M.A Otros Gastos Financieros' = CALCULATE([Otros Gastos Financieros], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: eb20bc91-c636-40a8-810e-8e86b990ea21
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Otros Gastos Financieros' = [Otros Gastos Financieros] - [M.A Otros Gastos Financieros]
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 06d50af7-e4bf-4dcc-9a36-d3cda442cebf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Otros Gastos Financieros' = DIVIDE([Var Otros Gastos Financieros], [M.A Otros Gastos Financieros], 0)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos No Operativos
+		lineageTag: dd4b7e8e-dac2-4997-8935-f964610b5cfe
+
+	measure 'Label Perdida en retiro bienes' = "Perd Retiro Bienes"
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 02441123-9e88-44ea-8817-9e91f78171bf
+
+	measure 'M.A Perdida Retiro Bienes' = CALCULATE([Perdida en retiro bienes], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 53f45c03-6633-409a-9b51-00627a74d9d9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Perdida en retiro bienes' = [Perdida en retiro bienes] - [M.A Perdida Retiro Bienes]
+		displayFolder: Total Gastos No Operativos
+		lineageTag: f9501f95-64a4-4a3d-a2c3-231001187b71
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Perdida en retiro bienes' = DIVIDE([Var Perdida en retiro bienes], [M.A Perdida Retiro Bienes])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos No Operativos
+		lineageTag: cd4cd589-47ff-450c-a2a9-83222fd37c44
+
+	measure 'Label Contribución Especial' = "Contri. Especial"
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 7f4b4e85-1212-45fb-9c35-26fc0ca07d17
+
+	measure 'M.A Contribucion Especial' = CALCULATE([Contribucion especial 4x1000], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: d42fb034-9f76-4c37-9b29-1ec1ea11554a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Contribucion Especial' = [Contribucion especial 4x1000] - [M.A Contribucion Especial]
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 4fdc9538-9c42-4d8d-b0c7-8753230fb39a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Contribucion Especial' = DIVIDE([Var Contribucion Especial], [M.A Contribucion Especial])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 6f281db3-eeb1-412a-a86c-3e8773168879
+
+	measure 'Label Impuestos Asumidos' = "Imp. Asumidos"
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 023470d2-bdbb-41a1-806e-6d3c377cf060
+
+	measure 'M.A Impuestos Asumidos' = CALCULATE([Impuestos Asumidos - Gastos no deducibles], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: e3c28a8c-5744-4f6d-8177-c667db35993d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Impuestos Asumidos' = [Impuestos Asumidos - Gastos no deducibles] - [M.A Impuestos Asumidos]
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 259ab1c1-78d3-4f93-9a5d-cfec0a951c58
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Impuestos Asumidos' = DIVIDE([Var Impuestos Asumidos], [M.A Impuestos Asumidos])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 0e9e6f85-3aea-4ac7-8e0c-e73581fc9330
+
+	measure 'Label Gastos Extraordinarios' = "Gtos Extraordina."
+		displayFolder: Total Gastos No Operativos
+		lineageTag: e1bba6a7-58e4-473b-8094-dc7caa74c6f1
+
+	measure 'M.A Gastos Extraordinarios' = CALCULATE([Gastos Extraordinarios], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 617db4af-3ba5-4f83-9a8e-19e7359cde04
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Gastos Extraordinarios' = [Gastos Extraordinarios] - [M.A Gastos Extraordinarios]
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 209caed2-f0bd-4200-b183-f00dafecfef9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Gastos Extraordinarios' = DIVIDE([Var Gastos Extraordinarios], [M.A Gastos Extraordinarios])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 80794a08-106c-4f8b-bbbe-3c9296674406
+
+	measure 'Label Provision Cartera e Inventarios' = "Provi. Cart. e Inv."
+		displayFolder: Total Gastos No Operativos
+		lineageTag: b0219ecc-20cd-47d3-ac62-40de6b8e68eb
+
+	measure 'M.A Provision Cartera e inventario' = CALCULATE([Provision Cartera e Inventarios], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 0ba4834c-63e8-4143-b914-11de1f821669
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Provision Cartera e Inventario' = [Provision Cartera e Inventarios] - [M.A Provision Cartera e inventario]
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 1210fd44-c404-476f-adac-bcaf1be90866
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Provision Cartera e Inventario' = DIVIDE([Var Provision Cartera e Inventario], [M.A Provision Cartera e inventario], 0)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos No Operativos
+		lineageTag: 24fadd12-1d69-4489-8cf3-70e2a0dcd13b
+
+	measure 'M.A Ingresos Intereses' = CALCULATE([Ingresos Intereses], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 52fee613-c87d-498c-ab24-12c16b9920a7
+
+	measure 'Var Ingresos Intereses' = [Ingresos Intereses] - [M.A Ingresos Intereses]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 8e8cbfca-2861-4218-924a-ea19ac45f3e1
+
+	measure '% Var Ingresos Intereses' = DIVIDE([Var Ingresos Intereses], [M.A Ingresos Intereses])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: f1fc6121-b815-4ed5-b6eb-5d4e37e8fefb
+
+	measure 'M.A Ingresos Diferencia en Cambio' = CALCULATE([Ingresos Diferencia en Cambio], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 3362d2c1-f747-4f3f-8f4d-da1a8b6748a0
+
+	measure 'Var Ingresos Diferencia en Cambio' = [Ingresos Diferencia en Cambio] - [M.A Ingresos Diferencia en Cambio]
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 185d1e4c-e85f-4658-a2f4-7f07cabfc64d
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Diferencia en Cambio' = DIVIDE([Var Ingresos Diferencia en Cambio], [M.A Ingresos Diferencia en Cambio])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: e3450e89-05ae-423b-8475-b150ca37906f
+
+	measure 'M.A Ingresos Cobertura TC' = CALCULATE([Ingresos Cobertura TC], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 8a5ac342-bf9e-42a1-89f8-9a2080620fee
+
+	measure 'Label Cobertura TC' = "Cobertura TC"
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 6bdf3a69-508c-4680-a258-1e9c7e77e737
+
+	measure 'Var Ingreso Cobertura TC' = [Ingresos Cobertura TC] - [M.A Ingresos Cobertura TC]
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: fd2aebc1-f673-414a-b84c-5d4f268151b0
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Cobertura TC' = DIVIDE([Var Ingreso Cobertura TC], [M.A Ingresos Cobertura TC])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 4c36b3c0-0446-4e97-ab2a-d6bd68f70aa2
+
+	measure 'M.A Ingresos Arrendamientos' = CALCULATE([Ingresos Arrendamientos], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: aba32871-e6a2-4d94-96b3-74ca3e3e6a28
+
+	measure 'Var Ingresos Arrendamientos' = [Ingresos Arrendamientos] - [M.A Ingresos Arrendamientos]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 7da67568-ae96-4423-a6de-dcf99259b142
+
+	measure '% Var Ingresos Arrendamientos' = DIVIDE([Var Ingresos Arrendamientos], [M.A Arrendamiento])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 3da42a38-1742-4ab5-961b-d50efe871f26
+
+	measure 'Label Fletes' = "Fletes"
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 4620fb91-301f-4da1-8353-875c8d697cb9
+
+	measure 'M.A Ingresos Fletes' = CALCULATE([Ingresos Fletes], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: eee967bd-7c58-4dbf-8b29-99a07aec3bde
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Ingresos Fletes' = [Ingresos Fletes] - [M.A Ingresos Fletes]
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 1fd42f70-e7fc-4822-b276-699487cab492
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Ingresos Fletes' = DIVIDE([Var Ingresos Fletes], [M.A Ingresos Fletes])
+		formatString: #,0.00\ %;-#,0.00\ %;#,0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 834764bb-61eb-4061-a914-8495d02b6e88
+
+	measure 'Label Utilidad Vta PPE' = "Ut. Vta PPE"
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 6968c562-c10e-4c32-ae60-95f1ad367904
+
+	measure 'M.A Utilidad PPE' = CALCULATE([Ingresos Utilidad PPE], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 6a6beae4-e5f3-431f-91b7-c58c44443f79
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Utilidad PPE' = [Ingresos Utilidad PPE] - [M.A Utilidad PPE]
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 72fe15b5-3f4c-46c2-99d9-d64358817b33
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Utilidad PPE' = DIVIDE([Var Utilidad PPE], [M.A Utilidad PPE],0)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 288bcb7a-787d-4c46-a995-64dd7f8b6873
+
+	measure 'Label Recuperaciones' = "Recuperaciones"
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 20461ff5-ecf5-4dcf-969c-76d60258796c
+
+	measure 'M.A Ingresos Recuperaciones' = CALCULATE([Ingresos Recuperaciones], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 0b49d416-d4e7-42f2-80a9-77f299e3b4e7
+
+	measure 'Var Ingresos Recuperaciones' = [Ingresos Recuperaciones] - [M.A Ingresos Recuperaciones]
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 0628a52c-c18f-4a0b-8fb2-e15b1b253e01
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Ingresos Recuperaciones' = DIVIDE([Var Ingresos Recuperaciones], [M.A Ingresos Recuperaciones])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: fe861425-06df-4a5b-b956-a6cc7f50a81f
+
+	measure 'Label Ingresos Ejercicios Anteriores' = "Ejerc. Anteriores"
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 3a8b58f6-4e34-43e3-88fe-075f1528194b
+
+	measure 'M.A Ingresos Ejercicios Anteriores' = CALCULATE([Ingresos Ejercicios Anteriores], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 842bb9d2-4bda-41df-b194-0a4f8da006dd
+
+	measure 'Var Ingresos Ejercicio Anteriores' = [Ingresos Ejercicios Anteriores] - [M.A Ingresos Ejercicios Anteriores]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 72adc8a4-30a0-470f-8901-92a8774ad6b8
+
+	measure '% Var Ingresos Ejercicios Anteriores' = DIVIDE([Var Ingresos Ejercicio Anteriores], [M.A Ingresos Ejercicios Anteriores], 0)
+		formatString: #,0.00\ %;-#,0.00\ %;#,0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 958d763a-bbfa-4164-afe6-79b0da11737d
+
+	measure 'Label Ingresos Indemnizaciones' = "Indemnizaciones"
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: c7a4b9e2-e1af-46b2-a689-709aa47b9498
+
+	measure 'M.A Ingresos Indemnizaciones' = CALCULATE([Ingresos Indemnizaciones], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: b75e97b0-d4f0-4934-a701-f987dbfe888f
+
+	measure 'Var Ingresos Indemnizaciones' = [Ingresos Indemnizaciones] - [M.A Ingresos Indemnizaciones]
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 919c43db-d7ca-4a5e-bbc5-0163783d0eca
+
+		formatStringDefinition = "\$#,0.###############;(\$#,0.###############);\$#,0.###############"
+
+	measure '% Var Ingresos Indemnizaciones' = DIVIDE([Var Ingresos Indemnizaciones], [M.A Ingresos Indemnizaciones])
+		formatString: #,0.00\ %;-#,0.00\ %;#,0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: fc9d9b7b-05eb-4e54-a291-b734848921b5
+
+	measure 'Label Ingresos Diversos' = "Diver - Benef PAEF"
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 387fb5cb-2350-4f43-b0f8-3d12c2fb748c
+
+	measure 'M.A Ingresos Diversos' = CALCULATE([Ingresos Diversos], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: ce308b53-ba0e-457e-b83a-d543aca54639
+
+	measure 'Var Ingresos Diversos' = [Ingresos Diversos] - [M.A Ingresos Diversos]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 6d3e02e6-6bf6-409d-9574-c6aa5d1f1859
+
+	measure '% Var Ingresos Diversos' = DIVIDE([Var Ingresos Diversos], [M.A Ingresos Diversos])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: eebb46d6-bb49-4850-9ba3-00f7e3684ddd
+
+	measure 'Label Total Ventas Netas' = "Ventas Netas"
+		displayFolder: Total Ventas Netas
+		lineageTag: 5eb5aee0-d1eb-48a8-b03f-18c004184bb4
+
+	measure 'M.A Ventas Netas' = CALCULATE([Total Ventas Netas], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: e8743c14-aa4d-498c-b289-30e7e2772969
+
+	measure 'Var Utilidad Ventas Netas' = [Total Ventas Netas] - [M.A Ventas Netas]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: 7ce4efc0-5981-4476-81f8-5c92b88616d2
+
+	measure '% Var Utilidad Ventas Netas' = DIVIDE([Var Utilidad Ventas Netas], [M.A Ventas Netas])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ventas Netas
+		lineageTag: 2dd1c6a9-27b5-422c-a957-3731dd016988
+
+	measure 'Label Total Costo Ventas' = "Costo Ventas"
+		displayFolder: Total Costo Ventas
+		lineageTag: 5373555d-6846-4c90-92fb-2154842426d6
+
+	measure 'M.A Total Costo Venta' = CALCULATE([Total Costo Ventas], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Costo Ventas
+		lineageTag: 82a237e7-c0e2-468a-836d-da6f7334989d
+
+	measure 'Var Costo Total Venta' = [Total Costo Ventas] - [M.A Total Costo Venta]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Costo Ventas
+		lineageTag: e8ba3c9e-4d09-4b63-b33e-586aa1a8b1b7
+
+	measure '% Var Total Costo Venta' = DIVIDE([Var Costo Total Venta], [M.A Total Costo Venta])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Costo Ventas
+		lineageTag: e612c591-294e-4e48-a05e-1169f5443e6f
+
+	measure 'M.A Gastos Administracion' = CALCULATE([Gastos Administracion], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Gastos Operativos
+		lineageTag: 1fd201c1-da63-44bd-8fbc-6ab7630b7324
+
+	measure 'Label Gastos Administracion' = "Administración"
+		displayFolder: Total Gastos Operativos
+		lineageTag: 9736334f-50d8-43bd-a512-9fd1537e932d
+
+	measure 'Var Gastos Administracion' = [Gastos Administracion] - [M.A Gastos Administracion]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Gastos Operativos
+		lineageTag: 1649a916-4139-48a7-ade7-90c1e128ca8f
+
+	measure '% Var Gastos Administracion' = DIVIDE([Var Gastos Administracion], [M.A Gastos Administracion])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos Operativos
+		lineageTag: 4fdb2a47-835e-44e6-9ad4-2e7a85a04545
+
+	measure 'Label Gastos Ventas' = "Ventas"
+		displayFolder: Total Gastos Operativos
+		lineageTag: 08c12522-1636-4f37-8e24-cfa4b9b199f2
+
+	measure 'M.A Gastos Ventas' = CALCULATE([Gastos Ventas], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Gastos Operativos
+		lineageTag: f4671fde-c63b-46cd-83b1-2d293acaca05
+
+	measure 'Var Gastos Ventas' = [Gastos Ventas] - [M.A Gastos Ventas]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Gastos Operativos
+		lineageTag: ff33882d-bbf7-4529-aabd-bcc6b70d44c3
+
+	measure '% Var Gastos Ventas' = DIVIDE([Var Gastos Ventas], [M.A Gastos Ventas])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos Operativos
+		lineageTag: 8d1cf4d6-ee9b-4ca1-a8d1-b8733aae67a5
+
+	measure 'Label Descuentos Comerciales' = "Descuento Com."
+		displayFolder: Total Gastos Operativos
+		lineageTag: 8dccf322-a071-4031-b641-66597ffc022d
+
+	measure 'M.A Descuentos Comerciales' = CALCULATE([Descuentos Comerciales], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Gastos Operativos
+		lineageTag: 915d14aa-f5de-46cd-9bf8-8a737480f019
+
+	measure 'Var Descuentos Comerciales' = [Descuentos Comerciales] - [M.A Descuentos Comerciales]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Gastos Operativos
+		lineageTag: 1243ac13-c021-4b45-bf09-d57c86fcb48e
+
+	measure '% Var Descuentos Comerciales' = DIVIDE([Var Descuentos Comerciales], [M.A Descuentos Comerciales],0)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Gastos Operativos
+		lineageTag: df250284-5bd1-4784-9380-8a32b2e47b02
+
+	measure 'Label Ventas Nacionales' = "Nacionales"
+		displayFolder: Total Ventas Netas
+		lineageTag: d176b72f-fdda-47d6-9390-a1dbb512fd9d
+
+	measure 'M.A Ventas Nacionales' = CALCULATE([Ventas Nacionales], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: f9e95d5c-ba2b-43e8-8622-598bc6d79ca1
+
+	measure 'Var Ventas Nacionales' = [Ventas Nacionales] - [M.A Ventas Nacionales]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: 8e476617-0c47-4e20-a8ed-eb6d5e499025
+
+	measure '% Var Ventas Nacionales' = DIVIDE([Var Ventas Nacionales], [M.A Ventas Nacionales],0)
+		formatString: #,0.00\ %;-#,0.00\ %;#,0.00\ %
+		displayFolder: Total Ventas Netas
+		lineageTag: 4c3de63d-d9ad-467a-a1d4-39e6f828b303
+
+	measure 'Label Ventas Exportaciones' = "Exportaciones"
+		displayFolder: Total Ventas Netas
+		lineageTag: d35ad4f0-807b-4c19-947e-4ba6ee294bc4
+
+	measure 'M.A Ventas Exportaciones' = CALCULATE([Ventas Exportaciones], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: 13ed935c-6091-4e60-8a90-bbc9f2d08240
+
+	measure 'Var Ventas Exportaciones' = [Ventas Exportaciones] - [M.A Ventas Exportaciones]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: 07e894a7-c146-4326-bda8-483139de8d90
+
+	measure '% Var Ventas Exportaciones' = DIVIDE([Var Ventas Exportaciones], [M.A Ventas Exportaciones])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ventas Netas
+		lineageTag: 5264413a-189c-4483-8b2b-a0c8373a7e4a
+
+	measure 'M.A Ventas Servicios' = CALCULATE([Ventas Servicios], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: f9c1d7a7-8186-4b1e-80a4-0e04a9d6d69c
+
+	measure 'Var Ventas Servicios' = [Ventas Servicios] - [M.A Ventas Servicios]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: e8c12180-018c-4996-9c4b-2eca68c85330
+
+	measure '% Var Ventas Servicios' = DIVIDE([Var Ventas Servicios], [M.A Ventas Servicios])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ventas Netas
+		lineageTag: aae37cb0-6c2b-41ab-a8ff-d67f44d117b8
+
+	measure 'Label Ventas MP' = "Materia Prima"
+		displayFolder: Total Ventas Netas
+		lineageTag: 3cb2df84-f926-44ab-b18d-31f961ea96a4
+
+	measure 'M.A Ventas MP' = CALCULATE([Ventas MP], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: 6caa18b9-0c76-4dce-a1d6-19daee37e67d
+
+	measure 'Var Ventas MP' = [Ventas MP] - [M.A Ventas MP]
+		displayFolder: Total Ventas Netas
+		lineageTag: e63ee342-b08c-4e89-99d1-215b7d578009
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Ventas MP' = DIVIDE([Var Ventas MP], [M.A Ventas MP])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ventas Netas
+		lineageTag: 1b59b363-1558-4c18-b7cb-90902e9d4f98
+
+	measure 'M.A Devolucion en Ventas' = CALCULATE([Devoluciones en Ventas], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Ventas Netas
+		lineageTag: 384f6bef-dce8-4141-a64f-969ac16fa9f4
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Label Devoluciones en Ventas' = "Devoluciones"
+		displayFolder: Total Ventas Netas
+		lineageTag: 1c1527aa-595f-41f2-ac10-fd2de3961908
+
+	measure 'Var Devoluciones en Ventas' = [Devoluciones en Ventas] - [M.A Devolucion en Ventas]
+		displayFolder: Total Ventas Netas
+		lineageTag: 8b3d636f-b1b1-46f2-a3d6-de3a4c5fa6a5
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Devoluciones en Ventas' = DIVIDE([Var Devoluciones en Ventas], [M.A Devolucion en Ventas])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ventas Netas
+		lineageTag: 41b70ec1-9bf1-4333-adfa-64a7139449f7
+
+	measure 'Label Descuentos Financieros' = "Desc. Financieros"
+		displayFolder: Total Ventas Netas
+		lineageTag: e8c040ca-41d9-45ca-a472-d5b388954479
+
+	measure 'M.A Ventas Descuentos Financieros' = CALCULATE([Ventas Descuentos Financieros], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Ventas Netas
+		lineageTag: d806accc-972b-4f60-ad1f-ef2edf7f3e80
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Var Ventas Descuentos Financieros' = [Ventas Descuentos Financieros] - [M.A Ventas Descuentos Financieros]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Ventas Netas
+		lineageTag: 0e9338eb-b7b8-4900-89d9-e36b3feffd5e
+
+	measure '% Var Ventas Descuentos Financieros' = DIVIDE([Var Ventas Descuentos Financieros], [M.A Ventas Descuentos Financieros])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Ventas Netas
+		lineageTag: f9d71532-e219-4d11-9e4e-5dfad503974d
+
+	measure 'Label Costos Productos Vendidos' = "Ctos Prod Vend"
+		displayFolder: Total Costo Ventas
+		lineageTag: 3e1628e6-e0cf-486a-a3d8-fa6c54848dcf
+
+	measure 'M.A Costos Productos Vendidos' = CALCULATE([Costos Productos Vendidos], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Costo Ventas
+		lineageTag: b096923c-3b3d-43b4-ab6b-302c31004612
+
+	measure 'Var Costos Productos Vendidos' = ```
+			[Costos Productos Vendidos] - [M.A Costos Productos Vendidos] 
+			```
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Costo Ventas
+		lineageTag: eb73970b-32a6-4f6e-9f16-8b786cffda22
+
+	measure '% Var Costos Productos Vendidos' = DIVIDE([Var Costos Productos Vendidos], [M.A Costos Productos Vendidos], 0)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Costo Ventas
+		lineageTag: 5f7d6155-7164-4ec3-868b-df8868f36c67
+
+	measure 'M.A Descuentos Financieros Aprovechados' = CALCULATE([Descuentos Financieros Aprovechados], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Costo Ventas
+		lineageTag: 175666ed-3c21-45ba-90f5-3aa1319097d6
+
+	measure 'Label Descuentos Financieros Aprovechados' = "Desc. Fin. Aprov."
+		displayFolder: Total Costo Ventas
+		lineageTag: 9a76caba-4c50-4142-9bc8-f72bb89e7c36
+
+	measure 'Var Descuentos Financieros Aprovechados' = [Descuentos Financieros Aprovechados] - [M.A Descuentos Financieros Aprovechados]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Total Costo Ventas
+		lineageTag: 1425c5b7-4248-4b32-a684-21b6156f4c59
+
+	measure '% Var Descuentos Financieros Aprovechados' = DIVIDE([Var Descuentos Financieros Aprovechados], [M.A Descuentos Financieros Aprovechados],0)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Total Costo Ventas
+		lineageTag: 97e612b4-88b6-4ec7-b89a-acc9cc973e01
+
+	measure 'Total Costo Ventas Resultado' = [Costos Productos Vendidos] + [Descuentos Financieros Aprovechados]
+		displayFolder: Total Costo Ventas
+		lineageTag: c0ce0405-9aeb-4282-bcfb-ebb3f7d2454b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'M.A Total Costo Venta Resultado' = CALCULATE([Total Costo Ventas Resultado], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Costo Ventas
+		lineageTag: 7b1dd53f-0b64-41b8-8802-d96d0bf56aaf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum Utilidad del Periodo' = CALCULATE([Acum Utilidad del Periodo], PREVIOUSYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Utilidad del Periodo
+		lineageTag: bf6e8378-d3a0-4960-9105-4fe1d2a90511
+
+	measure 'Var Acum Utilidad del Periodo' = [Acum Utilidad del Periodo] - [A.A Acum Utilidad del Periodo]
+		displayFolder: Acum Utilidad del Periodo
+		lineageTag: 8bf80bab-5b30-4596-99fb-2fecf9e30d91
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Utilidad del Periodo' = [Utilidad del Periodo] - ([M.A Utilidad del Periodo]*-1)
+		displayFolder: Utilidad del Periodo
+		lineageTag: c3c79450-07d0-4992-857b-9b6e24611a52
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum Utilidad Antes de Impuesto' = CALCULATE([Acum Utilidad Antes de Impuestos], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Utilidad Antes de Impuestos
+		lineageTag: 0f248c61-3a1d-4e6e-9627-fb777986c512
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Acum Utilidad Antes de Impuestos' = [Acum Utilidad Antes de Impuestos] - [A.A Acum Utilidad Antes de Impuesto]
+		displayFolder: Utilidad Antes de Impuestos
+		lineageTag: f04127cb-9e6d-491d-add9-d4f3426ee93a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Acum Var Utilidad Antes de Impuestos' = DIVIDE([Var Acum Utilidad Antes de Impuestos], [A.A Acum Utilidad Antes de Impuesto])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Utilidad Antes de Impuestos
+		lineageTag: a94dbf95-e94b-4462-9b40-95c0c95a65f6
+
+	measure 'A.A Acum Provision Impuesto de Renta (Resultado)' = CALCULATE([54 Acum Provision Impuesto de Renta (Resultado)], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Provision Impuesto de Renta (Resultado)
+		lineageTag: 5c5dca31-485d-474e-897a-2c7989019a44
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Acum Provision Impuesto de Renta' = [54 Acum Provision Impuesto de Renta (Resultado)] - [A.A Acum Provision Impuesto de Renta (Resultado)]
+		displayFolder: Acum Provision Impuesto de Renta (Resultado)
+		lineageTag: 93a2fc32-6e52-4a87-a08e-d9fdf1bd0104
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Acum Provision Impuesto de Renta' = DIVIDE([Var Acum Provision Impuesto de Renta], [A.A Acum Provision Impuesto de Renta (Resultado)])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Provision Impuesto de Renta (Resultado)
+		lineageTag: 7e42ff47-6515-499c-8ece-b746fb432d30
+
+	measure '% Var Acum utilidad del Periodo' = DIVIDE([Var Acum Utilidad del Periodo], [A.A Acum Utilidad del Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Utilidad del Periodo
+		lineageTag: aff47a5c-edd9-4616-8cf2-25d75dfba058
+
+	measure 'A.A Acum Utilidad Operacional' = CALCULATE([Acum Utilidad Operacional], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Utilidad Operacional
+		lineageTag: 79271ade-2a0c-4c1c-80d1-517a9793371d
+
+	measure 'Var Acum Utilidad Operacional' = [Acum Utilidad Operacional] - [A.A Acum Utilidad Operacional]
+		displayFolder: Acum Utilidad Operacional
+		lineageTag: 160ff389-5e28-4870-bc76-bd41fad5488f
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Acum Utilidad Operacional' = DIVIDE([Var Acum Utilidad Operacional], [A.A Acum Utilidad Operacional])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Utilidad Operacional
+		lineageTag: da92d716-4b7e-4703-a3a4-a57081a5c7cf
+
+	measure 'A.A Acum Total Gastos No Operativos' = CALCULATE([Acum Total Gastos No Operativos], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: 4f52ad60-04f3-46d5-8753-1ad570c3a5f6
+
+	measure 'Var Acum Total Gastos No Operativos' = [Acum Total Gastos No Operativos] - [A.A Acum Total Gastos No Operativos]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: 1f33502b-ae53-4fc6-879b-28b2b0300bfb
+
+	measure '% Var Acum Total Gastos No Operativos' = DIVIDE([Var Acum Total Gastos No Operativos], [A.A Acum Total Gastos No Operativos])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Gastos No Operativos
+		lineageTag: f1a50c5a-4ffb-43d4-ae9e-9529fbdd6a71
+
+	measure 'A.A Acum Total Ingresos No Operativos' = CALCULATE([Acum Total Ingresos No Operativos], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: aeaa4054-7707-419e-bb0c-7e57ef4a1dbb
+
+	measure 'Var Acum Total Ingresos No Operativos' = [Acum Total Ingresos No Operativos] - [A.A Acum Total Ingresos No Operativos]
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: 70f899a6-9e2b-43fa-bed1-5f91c6c1a5f2
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Acum Total Ingresos No Operativos' = DIVIDE([Var Acum Total Ingresos No Operativos], [A.A Acum Total Ingresos No Operativos])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Ingresos No Operativos
+		lineageTag: 6c8d6f17-2851-4b05-91c1-d78da2c3a2b2
+
+	measure '% Var Acum Utilidad Antes de Impuestos' = DIVIDE([Var Acum Utilidad Antes de Impuestos], [A.A Acum Utilidad Antes de Impuesto])
+		formatString: #,0.00\ %;-#,0.00\ %;#,0.00\ %
+		displayFolder: Utilidad Antes de Impuestos
+		lineageTag: 4f7f5a3a-91a5-4185-a376-72eea54e0212
+
+	measure 'A.A Acum Utilidad Bruta en Ventas' = CALCULATE([Acum Utilidad Bruta en Ventas], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Utilidad Bruta en Ventas
+		lineageTag: a0fbe32e-6340-4552-990b-24a2a146d33d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Acum Utilidad Bruta en Ventas' = [Acum Utilidad Bruta en Ventas] - [A.A Acum Utilidad Bruta en Ventas]
+		displayFolder: Acum Utilidad Bruta en Ventas
+		lineageTag: 9335c6d8-a977-4e49-9bd6-eee9136f79b3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Acum Utilidad Bruta en Ventas' = DIVIDE([Var Acum Utilidad Bruta en Ventas], [A.A Acum Utilidad Bruta en Ventas])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Utilidad Bruta en Ventas
+		lineageTag: 226cc393-4afc-4bf5-927d-6965d9c8a55e
+
+	measure 'A.A Acum Total Gasto Operativos' = CALCULATE([Acum Total Gastos Operativos], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 0a246bc1-e64f-4faa-b6a6-4503c649a614
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Acum Total Gastos Operativos' = [Acum Total Gastos Operativos] - [A.A Acum Total Gasto Operativos]
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 09188c66-30b0-4989-9189-b39aed9a207a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Acum Total Gastos Operativos' = DIVIDE([Var Acum Total Gastos Operativos], [A.A Acum Total Gasto Operativos])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 83bd43c8-885e-4440-913e-e19f98505e8e
+
+	measure 'Acum var total ventas netas' = ```
+			[A.A Acum Total Ventas Netas] - [Acum Total Ventas Netas] 
+			```
+		displayFolder: Acum Utilidad Bruta en Ventas
+		lineageTag: 7f4cdcf6-83c5-44fd-9320-40bcdf563273
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum Total Ventas Netas' = CALCULATE([Acum Total Ventas], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 40ce3743-9603-456f-93cb-adc2d8c09ad2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total ventas netas' = ```
+			DIVIDE([Acum var total ventas netas], [A.A Acum Total Ventas Netas]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Utilidad Bruta en Ventas
+		lineageTag: aa41567e-b1b5-4068-a0d5-69805b75d346
+
+	measure 'A.A Acum Total Costo ventas' = CALCULATE([Acum Total Costo Ventas], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: 74a83e53-49e4-493c-b8f9-6ffb55df94bc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum var total Costo Ventas' = ```
+			[A.A Acum Total Costo ventas] - [Acum Total Costo Ventas] 
+			```
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: e0057f8d-86eb-438c-b346-d786eb061d58
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total costo ventas' = ```
+			DIVIDE([Acum var total Costo Ventas], [A.A Acum Total Costo ventas]) 
+			```
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: 987ac9ef-2748-4918-bb14-c926c6f54f7c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum Ventas Nacionales' = CALCULATE([Acum Ventas Nacionales], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Total Ventas Netas
+		lineageTag: d2b71c7f-8991-459a-ba3b-328a7f2013d0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum var total Ventas nacionales' = ```
+			[A.A Acum Ventas Nacionales] - [Acum Ventas Nacionales] 
+			```
+		lineageTag: bd575824-8d6c-422a-b478-b36c1adb63e6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total ventas nacionales' = ```
+			DIVIDE([Acum var total Ventas nacionales], [A.A Acum Ventas Nacionales]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: d4bd51d6-41ab-42c5-91a8-55e30a67e6a6
+
+	measure 'A.A Acum Ventas Exportaciones' = CALCULATE([Acum Ventas Exportaciones], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 9bf77039-43fd-483f-86da-87cfbf6ed499
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum var total Ventas exportaciones' = ```
+			[A.A Acum Ventas Exportaciones] - [Acum Ventas Exportaciones] 
+			```
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: a886bf87-a132-43e1-abc1-e76902678101
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total ventas exportaciones' = ```
+			DIVIDE([Acum var total Ventas exportaciones], [A.A Acum Ventas Exportaciones]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: d71262b8-caab-40d5-8b9f-8fbcd1230943
+
+	measure 'A.A Acum Ventas Servicios' = CALCULATE([Acum Ventas Servicios], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 804e5636-fa33-44e3-b94b-7d2eb4f71b7e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum var total Ventas servicios' = ```
+			[A.A Acum Ventas Servicios] - [Acum Ventas Servicios] 
+			```
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 0a340188-e754-4b61-8720-2f3a3fc5ae3d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total ventas servicios' = ```
+			DIVIDE([Acum var total Ventas servicios], [A.A Acum Ventas Servicios]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 506ee262-41e0-44a3-8fb4-110ffc361443
+
+	measure 'A.A Acum Ventas MP' = CALCULATE([Acum Ventas MP], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: a80ffa32-4395-4779-bfdb-96a5c661982a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum var total Ventas MP' = ```
+			[A.A Acum Ventas MP] - [Acum Ventas MP] 
+			```
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 9a995065-7d52-476f-a913-1f19834f96da
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total ventas MP' = ```
+			DIVIDE([Acum var total Ventas MP], [A.A Acum Ventas MP]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: a9093d35-63d9-466c-aff1-3d591d38ec31
+
+	measure 'A.A Acum Devoluciones en venta' = CALCULATE([Acum Devoluciones en Venta], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 388e493e-daa6-4eb9-9113-7ef72b20f408
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum var total devoluciones en venta' = ```
+			[A.A Acum Devoluciones en venta] - [Acum Devoluciones en Venta] 
+			```
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: d76af83c-1f55-4965-bf02-72ea3710605d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total devoluciones en venta' = ```
+			DIVIDE([Acum var total devoluciones en venta], [A.A Acum Devoluciones en venta]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: b8872037-beda-4f09-986f-85c7e23720e5
+
+	measure 'A.A Acum Descuentos financieros' = CALCULATE([Acum Descuentos Financieros], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: d79797c6-b0ee-4464-9048-cb6da7190446
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum var total descuentos financieros' = ```
+			[A.A Acum Descuentos financieros] - [Acum Descuentos Financieros] 
+			```
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: a1a50579-9e30-4b91-a8b9-5df9cb7e5af0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total descuentos financieros' = ```
+			DIVIDE([Acum var total descuentos financieros], [A.A Acum Descuentos financieros]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Ventas Netas
+		lineageTag: 66011cff-af3e-4a23-b86e-5b9c60aecaa3
+
+	measure 'A.A Acum Costos productos vendidos' = CALCULATE([Acum Costos Productos Vendidos], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: 3a0a698b-3ec5-4252-a359-af7c034c0f1d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum var total Costos productos vendidos' = ```
+			[A.A Acum Costos productos vendidos] - [Acum Costos Productos Vendidos] 
+			```
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: a288c75c-4a18-4d55-8633-9787960cc884
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total costos productos vendidos' = ```
+			DIVIDE([Acum var total Costos productos vendidos], [A.A Acum Costos productos vendidos]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: e23c5c04-8fdf-4b7d-8b2e-febf12652d9f
+
+	measure 'A.A Acum Descuentos financieros aprovechados' = CALCULATE([Acum Descuentos Financieros Aprovechados], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: d97058f5-aa98-4835-b182-75a896e361b2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum var total descuentos financieros aprovechados' = ```
+			[A.A Acum Descuentos financieros aprovechados] - [Acum Descuentos Financieros Aprovechados] 
+			```
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: 2f22acde-c1c4-40ca-a3a5-010c7fa9fffc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total descuentos financieros aprovechados' = ```
+			DIVIDE([Acum var total descuentos financieros aprovechados], [A.A Acum Descuentos financieros aprovechados]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Costo Ventas
+		lineageTag: e70e4c53-ff25-4812-aaf2-e6a5e1d32193
+
+	measure 'A.A Acum Gastos administracion' = CALCULATE([Acum Gastos Administracion], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: be95e131-efc2-4dd7-837c-3e9f15ba8e8e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Acum Total Gastos administracion' = [Acum Gastos Administracion] - [A.A Acum Gastos administracion]
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 3ea38ace-d361-42d0-b054-d89f473b8c47
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total Gastos administracion' = ```
+			DIVIDE([Var Acum Total Gastos administracion], [A.A Acum Gastos administracion]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 0b404e53-a936-45fc-87b3-1c6e2e6b9845
+
+	measure 'A.A Acum Gastos ventas' = CALCULATE([Acum Gastos Ventas], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 948670ef-faa6-4468-8873-2d2ee32073eb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Acum Total Gastos ventas' = [Acum Gastos Ventas] - [A.A Acum Gastos ventas]
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 2e56e0d2-9417-4c78-b784-2fff184f5023
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total Gastos ventas' = ```
+			DIVIDE([Var Acum Total Gastos ventas], [A.A Acum Gastos ventas]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 0bd6a614-e385-44b8-ad8f-99ba2486a122
+
+	measure 'A.A Acum Descuentos comerciales' = CALCULATE([Acum Descuentos Comerciales], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 2a90bff8-44c6-4cce-acba-c297e56b2219
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Acum total Descuentos comerciales' = [Acum Descuentos Comerciales] - [A.A Acum Descuentos comerciales]
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 198f2152-953d-4ea4-bced-83565502f093
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% var acum total Descuentos comerciales' = ```
+			DIVIDE([Var Acum total Descuentos comerciales], [A.A Acum Descuentos comerciales]) 
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Total Gastos Operativos
+		lineageTag: 4e860746-f233-479b-9af9-3f1493f4adfd
+
+	measure 'A.A Ingresos Intereses' = CALCULATE([Ingresos Intereses], PREVIOUSYEAR(Calendario[Date]))
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 1251c539-e704-4c5f-a9ab-5c7a3a5a075e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Ingresos Diferencia en Cambio' = CALCULATE([Ingresos Diferencia en Cambio], PREVIOUSYEAR(Calendario[Date]))
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 21e8e07d-8f40-41d7-9c83-bfccb97a71e0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Ingresos Cobertura TC' = CALCULATE([Ingresos Cobertura TC], PREVIOUSYEAR(Calendario[Date]))
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: afb4bbc3-7b31-42cc-a210-09d8db666adb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Ingresos Intereses' =
+			CALCULATE([Ingresos Intereses],
+			                            FILTER(ALLSELECTED(Calendario), Calendario[Date] <= MAX(Calendario[Date])))
+		displayFolder: Total Ingresos No Operativos
+		lineageTag: 81818081-b93b-48ed-b347-75295fc4b839
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Medidas Resultado-41b43da5-c41c-4ac3-857b-fb7e1595e1ab' = m
+		mode: import
+		source =
+				let
+				    Origen = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Columna1 = _t]),
+				    #"Tipo cambiado" = Table.TransformColumnTypes(Origen,{{"Columna1", type text}}),
+				    #"Columnas quitadas" = Table.RemoveColumns(#"Tipo cambiado",{"Columna1"})
+				in
+				    #"Columnas quitadas"
+
+	annotation PBI_ResultType = Table
+

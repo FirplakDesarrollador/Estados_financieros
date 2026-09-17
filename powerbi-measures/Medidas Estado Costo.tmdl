@@ -1,0 +1,1699 @@
+{"success":true}[Resource from powerbi-modeling-mcp at tmdl://Medidas%20Estado%20Costo.tmdl] table 'Medidas Estado Costo'
+	lineageTag: cdd83e2c-bc05-4635-bf31-ceec0b4cc60a
+
+	measure ComprasMP = CALCULATE(Sum('Cuentas 14 y 74'[Saldo Mensual]), 'Cuentas 14 y 74'[Cuenta Contable] in {"14050505", "14050510", "14050520", "14050555", "14050560"})
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo MP Utilizada
+		lineageTag: 354fc6f9-5d9f-43f3-9e6a-36ba1bc24610
+
+	measure 'SS a la MP' = CALCULATE(Sum('Cuentas 14 y 74'[Saldo Mensual]), 'Cuentas 14 y 74'[Cuenta Contable] in {"74010505", "74010515", "74010525"})
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo MP Utilizada
+		lineageTag: df0ecdb3-788b-4cdb-a3c6-e07a72423b64
+
+	measure 'Retiro MP Moldes' = (CALCULATE(MAX(Balance[Débito]), Balance[Account] = "73959510")*-1) - CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "73959510")*-1 + (CALCULATE(MAX(Balance[Débito]), Balance[Account] = "73959535")*-1) - CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "73959535")*-1
+		displayFolder: Costo MP Utilizada
+		lineageTag: 20760c68-3d4d-4dce-b95b-c65f0d51696e
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure Inv_Final_MP = (CALCULATE(Max(Balance[Saldo Final]),Balance[Lvl3] = "1405") - CALCULATE(Max(Balance[Saldo Final]),Balance[Account] = "14050575") - CALCULATE(Max(Balance[Saldo Final]),Balance[Account] = "14050595"))*-1
+		displayFolder: Costo MP Utilizada
+		lineageTag: af81efa1-d283-450b-8f3f-574a14a7e816
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure Compras_Comercializado = CALCULATE(Sum('Cuentas 14 y 74'[Saldo Mensual]), 'Cuentas 14 y 74'[Cuenta Contable] in {"14350505", "14350510"})
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo MP Utilizada
+		lineageTag: 89d55599-3d0b-419a-baba-c9cbf4fb5f1a
+
+	measure Inv_Inicial_PC = CALCULATE(Max(Balance[Saldo Inicial]),Balance[Lvl3] = "1435")
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo MP Utilizada
+		lineageTag: e32c1c2c-8c19-4814-97c8-5a88fb00ad1a
+
+	measure Inv_final_PC = CALCULATE(Max(Balance[Saldo Final]),Balance[Lvl3] = "1435")*-1
+		displayFolder: Costo MP Utilizada
+		lineageTag: 3d31611e-7855-42b0-b7ee-1507a415cdb3
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Costo MP Utilizada' = [Inv_Inicial_MP] + [ComprasMP] + [SS a la MP] + [Retiro MP Moldes] + [Inv_Final_MP] + [Inv_Inicial_PC] + [Compras_Comercializado] + [Inv_final_PC]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo Producción Periodo
+		lineageTag: e234f606-e6a2-485f-ac46-99762e879961
+
+	measure 'MO Vinc' = (CALCULATE(SUM(Balance[Débito]), Balance[Account] in {"72059585", "72059595", "72059590"})*-1) - (CALCULATE(SUM(Balance[Crédito]), Balance[Account] in {"72059585", "72059595", "72059590"})*-1)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo M.O.D.
+		lineageTag: b00e4566-aa82-401e-82da-aea31ea0fa7f
+
+	measure 'MO Temp' = (CALCULATE(SUM(Balance[Débito]), Balance[Account] in {"72359595"})*-1) - (CALCULATE(SUM(Balance[Crédito]), Balance[Account] in {"72359595"})*-1)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo M.O.D.
+		lineageTag: d47f6779-1d0b-4bc3-baab-90f9ae80e1d7
+
+	measure 'Costo M.O.D.' = ```
+			[MO Vinc] + [MO Temp] 
+			```
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo Producción Periodo
+		lineageTag: 74c56862-c616-4aad-b424-8898f3f72186
+
+	measure 'MO Indirecta' = (CALCULATE(MAX(Balance[Débito]), Balance[Account] = "73059595")*-1) - (CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "73059595")*-1)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: CIF
+		lineageTag: f98e5360-a86f-4e3f-a767-b449082be54a
+
+	measure Honorarios = CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "7310") - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "7310")
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: CIF
+		lineageTag: d1b5f6b6-fed6-4e55-a491-5168d325d5b9
+
+	measure Impuestos = CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "7315") - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "7315")
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: CIF
+		lineageTag: 07ae1fec-00e9-4f85-9ecb-780cc6eca8f7
+
+	measure Arrendamiento = CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "7320") - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "7320")
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: CIF
+		lineageTag: 1dd0a0a3-a751-4341-bbbe-6d046d3f68e8
+
+	measure Servicios = CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "7335") - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "7335")
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: CIF
+		lineageTag: 2715249b-f55a-4168-920c-7db08b20342b
+
+	measure Mantenimiento = CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "7345") - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "7345")
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: CIF
+		lineageTag: 0b33eff9-1e43-4b43-9a28-96624b5eb630
+
+	measure Adecuacion = CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "7350") - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "7350")
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: CIF
+		lineageTag: 0f1d00da-5ec7-4242-8d02-2b0b01bcca83
+
+	measure Depreciacion = CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "7360") - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "7360")
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: CIF
+		lineageTag: d8864ce6-f6c0-45d0-9b34-d090a86f7c4d
+
+	measure 'Otros CIF' = ```
+			
+			(CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "7395", ISBLANK(Balance[Lvl4])) - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "7395", ISBLANK(Balance[Lvl4])))
+			 
+			 - (CALCULATE(MAX(Balance[Débito]), Balance[Account] = "73959585") - CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "73959585")) 
+			 
+			 - (CALCULATE(MAX(Balance[Débito]), Balance[Account] = "73959595") - CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "73959595"))
+			
+			 - (CALCULATE(MAX(Balance[Débito]), Balance[Account] = "73959580") - CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "73959580"))
+			
+			 - (CALCULATE(MAX(Balance[Débito]), Balance[Account] = "73959540") - CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "73959540"))
+			
+			 - (CALCULATE(MAX(Balance[Débito]), Balance[Account] = "73959545") - CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "73959545"))
+			```
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: CIF
+		lineageTag: fa20f6ca-bfe9-45ca-b833-0aa6e0a6b41d
+
+	measure CIF = [MO Indirecta] + [Honorarios] + [Impuestos] + [Arrendamiento] + [Servicios] + [Mantenimiento] + [Adecuacion] + [Depreciacion] + [Otros CIF] + [Gastos de viaje] + [Seguros]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo Producción Periodo
+		lineageTag: c8ec44da-6814-4996-96ec-1cf6d27b48bd
+
+	measure 'Costo Produccion Periodo' = [CIF] + [Costo M.O.D.] + [Costo MP Utilizada]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo Producción Periodo
+		lineageTag: 71dd5f52-b905-4fd4-875e-fc016a51e6ff
+
+	measure Inv_Inicial_Prod_Proceso = CALCULATE(MAX(Balance[Saldo Inicial]), Balance[Lvl3] = "1410", ISBLANK(Balance[Lvl4]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo Prod Proceso
+		lineageTag: 580cdcef-bc35-4b80-a26c-f2512b777ccb
+
+	measure 'Costo Prod Proceso' = [Costo Produccion Periodo] + [Inv_Inicial_Prod_Proceso]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo Prod Proceso
+		lineageTag: 866786cb-78da-4306-bd85-38d000be5934
+
+	measure Inv_final_Prod_Proceso = CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "1410", ISBLANK(Balance[Lvl4]))*-1
+		displayFolder: Costo Prod Terminado
+		lineageTag: 82d81d6b-a1f5-43e7-817d-aa867ff0c420
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Costo Prod Terminado' = [Costo Prod Proceso] + [Inv_final_Prod_Proceso]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo Prod Terminado
+		lineageTag: e9a91140-29fa-4953-a8b8-94f166dd3485
+
+	measure 'Inv Inicial Prod Terminado' = CALCULATE(MAX(Balance[Saldo Inicial]), Balance[Lvl3] = "1430", ISBLANK(Balance[Lvl4]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo Prod Dispo Venta
+		lineageTag: 3c4de836-2005-40e1-9a59-672680968220
+
+	measure 'Costo Prod Dispo Venta' = [Costo Prod Terminado] + [Inv Inicial Prod Terminado]
+		displayFolder: Costo Prod Dispo Venta
+		lineageTag: e34dccde-0c02-448c-bf60-3eeb871bc1b5
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Retiro Muestra Venta' = ((CALCULATE(MAX(Balance[Débito]), Balance[Account] = "52959515"))*-1) - ((CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "52959515"))*-1)
+		displayFolder: Costo Venta Manufacturados
+		lineageTag: 24be7d4a-6c98-41f4-8279-fe4d38a50711
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Traslado de Costos' = ```
+			
+			((CALCULATE(MAX(Balance[Débito]), Balance[Account] = "52059595") - 
+			CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "52059595"))
+			
+			+ (CALCULATE(MAX(Balance[Débito]), Balance[Account] = "52351595") - 
+			CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "52351595")) 
+			
+			+ (CALCULATE(MAX(Balance[Débito]), Balance[Account] = "52954595") -
+			CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "52954595"))) * -1
+			
+			```
+		displayFolder: Costo Venta Manufacturados
+		lineageTag: e1252a70-2615-49ee-b01f-0e2bb110e97a
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure Inv_Final_Prod_terminado = CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "1430", ISBLANK(Balance[Lvl4]))*-1
+		displayFolder: Costo Venta Manufacturados
+		lineageTag: 08aab5a6-c13c-4214-a153-69a70afd19d4
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Costo Venta Manufacturados' = [Retiro Muestra Venta] + [Traslado de Costos] + [Inv_Final_Prod_terminado] + [Costo Prod Dispo Venta]
+		displayFolder: Costo Venta Manufacturados
+		lineageTag: b183a73a-e15b-4bc1-9d99-926fd8693942
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TOTAL REAL' = CALCULATE(MAX(Balance[Débito]), Balance[Lvl2] = "61", ISBLANK(Balance[Lvl4])) - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl2] = "61", ISBLANK(Balance[Lvl4]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo Venta Manufacturados
+		lineageTag: 351640ef-1473-41ea-9ef3-4457bd1e9ed0
+
+	measure 'Dif Real vs Medida' = [Costo Venta Manufacturados] - [TOTAL REAL]
+		displayFolder: Costo Venta Manufacturados
+		lineageTag: afdc9f05-fb55-4b56-8412-3f28bf4a680e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Retiro Muestra Venta Real' = (((CALCULATE(MAX(Balance[Débito]), Balance[Account] = "52959515"))*-1) - ((CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "52959515"))*-1) - ([Dif Real vs Medida]))
+		displayFolder: Costo Venta Manufacturados
+		lineageTag: 8815d1fb-651a-4392-a1a4-9d0684b58239
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Costo Venta Manufacturados REAL' = [Retiro Muestra Venta Real] + [Traslado de Costos] + [Inv_Final_Prod_terminado] + [Costo Prod Dispo Venta]
+		displayFolder: Costo Venta Manufacturados
+		lineageTag: c1dbfa02-ec6c-4266-8aa7-d14efac662a8
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Acum Inv_Inicial_MP' =
+			(CALCULATE(Max(Balance[Saldo Inicial]),
+			                        Balance[Lvl3] = "1405",
+			                        Balance[Mes] = 1,
+			                        Balance[Año] = SELECTEDVALUE(Calendario[Date].[Año])))
+			                    - (CALCULATE(Max(Balance[Saldo Inicial]),
+			                        Balance[Account] = "14050575",
+			                        Balance[Mes] = 1,
+			                        Balance[Año] = SELECTEDVALUE(Calendario[Date].[Año])))
+			                    - (CALCULATE(Max(Balance[Saldo Inicial]),
+			                        Balance[Account] = "14050595",
+			                        Balance[Mes] = 1,
+			                        Balance[Año] = SELECTEDVALUE(Calendario[Date].[Año])))
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: 88f954ed-86c3-4509-a6ac-ddc0a1b28a18
+
+	measure Inv_Inicial_MP = ```
+			(CALCULATE(Max(Balance[Saldo Inicial]), Balance[Lvl3] = "1405"))
+			                    - CALCULATE(Max(Balance[Saldo Inicial]), Balance[Account] = "14050575") 
+			                    - CALCULATE(Max(Balance[Saldo Inicial]),Balance[Account] = "14050595")
+			```
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo MP Utilizada
+		lineageTag: 329debfe-4b70-4424-9e5c-ce09d61b1d8f
+
+	measure 'Acum Compras MP' =
+			CALCULATE([ComprasMP],
+			                            FILTER(ALLSELECTED(Calendario), Calendario[Date] <= MAX(Calendario[Date])))
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: 2844e845-e6fc-4931-9b2a-b392ecd5e368
+
+	measure 'Acum SS a la MP' =
+			CALCULATE([SS a la MP],
+			                            FILTER(ALLSELECTED(Calendario), Calendario[Date] <= MAX(Calendario[Date])))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: 3d4c6873-fdc2-40b3-87d5-6d8c65cd6012
+
+	measure 'Acum Retiro MP Moldes' =
+			(CALCULATE(Max(Balance[Saldo Final]),
+			                        Balance[Account] = "73959510",
+			                        Balance[Mes] = MAX(Balance[Mes]),
+			                        Balance[Año] = SELECTEDVALUE(Calendario[Date].[Año])))*-1
+			                        +
+			                        (CALCULATE(Max(Balance[Saldo Final]),
+			                        Balance[Account] = "73959535",
+			                        Balance[Mes] = MAX(Balance[Mes]),
+			                        Balance[Año] = SELECTEDVALUE(Calendario[Date].[Año])))*-1
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: e276cc12-7616-42ed-8da0-3526c0499e71
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Acum Inv_Final_MP' = CALCULATE([Inv_Final_MP],Balance[Mes] = MAX(Balance[Mes]))
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: 66bc766d-c702-4fc9-bb5f-48b2af694538
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Acum Inv_Inicial_PC' =
+			(CALCULATE(Max(Balance[Saldo Inicial]),
+			                        Balance[Lvl3] = "1435",
+			                        Balance[Mes] = 1,
+			                        Balance[Año] = SELECTEDVALUE(Calendario[Date].[Año])))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: 58f660b2-e973-48a5-acf6-8dfc1f005981
+
+	measure 'Acum Compras_Comercializado' =
+			CALCULATE([Compras_Comercializado],
+			                            FILTER(ALLSELECTED(Calendario), Calendario[Date] <= MAX(Calendario[Date])))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: 8a6fbfa0-31a1-462f-94a8-a864c52030c6
+
+	measure 'Acum Inv_Final_PC' = CALCULATE([Inv_final_PC],Balance[Mes] = MAX(Balance[Mes]))
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: 3ed8487a-7e58-46ec-863c-6d8552c88100
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Acum MO Vinc' = CALCULATE(SUM(Balance[Saldo Final]),Balance[Account] in {"72059585", "72059595", "72059590"}, Balance[Mes] = MAX(Balance[Mes]))*-1
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo M.O.D.
+		lineageTag: cdc8b67a-6784-49f7-833f-c2e40f9390bc
+
+	measure 'Acum MO Temp' = CALCULATE(Max(Balance[Saldo Final]),Balance[Account] = "72359595", Balance[Mes] = MAX(Balance[Mes]))*-1
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo M.O.D.
+		lineageTag: 63ff0f7f-9336-41a9-8303-af4fc83a6240
+
+	measure 'Acum Costo MP Utilizada' = [Acum Inv_Inicial_MP] + [Acum Compras MP] + [Acum SS a la MP] + [Acum Retiro MP Moldes] + [Acum Inv_Final_MP] + [Acum Inv_Inicial_PC] + [Acum Compras_Comercializado] + [Acum Inv_Final_PC]
+		displayFolder: Acum Costo Produccion
+		lineageTag: cf3d0032-a408-4e2e-bc1f-f9db2a7249ab
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Acum Costo M.O.D.' = [Acum MO Vinc] + [Acum MO Temp]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Produccion
+		lineageTag: 8cc19c9b-71e3-4891-af9b-b58f336f484b
+
+	measure 'Acum MO Indirecta' = CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "73059595",Balance[Mes] = MAX(Balance[Mes]))*-1
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: 886023c2-3be5-426f-a88a-43ccc0a8b5bc
+
+	measure 'Acum Honorarios' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "7310",Balance[Mes] = MAX(Balance[Mes]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: a0e704b2-1bcf-44bd-b700-e4d03b1a0aad
+
+	measure 'Acum Impuestos' = CALCULATE(Max(Balance[Saldo Final]),Balance[Lvl3] = "7315",Balance[Mes] = MAX(Balance[Mes]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: 60d0b149-7a79-44c0-a4d1-3f277169b45e
+
+	measure 'Acum Arrendamientos' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "7320",Balance[Mes] = MAX(Balance[Mes]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: 72c57f43-6701-49e5-bc37-d16bc4378df0
+
+	measure 'Acum Servicios' = CALCULATE(MAx(Balance[Saldo Final]), Balance[Lvl3] = "7335",Balance[Mes] = MAX(Balance[Mes]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: fb28b1a8-91b6-44b6-b75d-42a5d47260c6
+
+	measure 'Acum Mantenimiento' = CALCULATE(Max(Balance[Saldo Final]),Balance[Lvl3] = "7345",Balance[Mes] = MAX(Balance[Mes]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: 780f1b16-c6cf-46fe-b68c-b522dbf05618
+
+	measure 'Acum Adecuacion' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "7350",Balance[Mes] = MAX(Balance[Mes]))
+		displayFolder: Acum CIF
+		lineageTag: c50feea4-45bb-45d9-b429-fa5bc4f88778
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Depreciaciones' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "7360",Balance[Mes] = MAX(Balance[Mes]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: 4ff5dbfb-6de7-4239-bfe1-61e970fb9ac0
+
+	measure 'Acum Otros CIF' = ```
+			CALCULATE(MAX(Balance[Saldo Final]),Balance[Lvl3] = "7395", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])) 
+			                - CALCULATE(MAX(Balance[Saldo Final]),Balance[Account] = "73959585", Balance[Mes] = MAX(Balance[Mes]))
+			                - CALCULATE(MAX(Balance[Saldo Final]),Balance[Account] = "73959595", Balance[Mes] = MAX(Balance[Mes]))
+			                - CALCULATE(MAX(Balance[Saldo Final]),Balance[Account] = "73959580", Balance[Mes] = MAX(Balance[Mes]))
+			                - CALCULATE(MAX(Balance[Saldo Final]),Balance[Account] = "73959540", Balance[Mes] = MAX(Balance[Mes]))
+			                - CALCULATE(MAX(Balance[Saldo Final]),Balance[Account] = "73959545", Balance[Mes] = MAX(Balance[Mes]))
+			```
+		displayFolder: Acum CIF
+		lineageTag: 03aaad94-c643-43da-9632-691fd6ac981e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum CIF' = [Acum MO Indirecta] + [Acum Honorarios] + [Acum Impuestos] + [Acum Arrendamientos] + [Acum Servicios] + [Acum Mantenimiento] + [Acum Adecuacion] + [Acum Depreciaciones] + [Acum Otros CIF] + [Acum Gastos de viaje]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Produccion
+		lineageTag: 0e764e38-e962-4acc-bd53-d86658ac7bf7
+
+	measure 'Acum Costo Produccion Periodo' = [Acum Costo MP Utilizada] + [Acum Costo M.O.D.] + [Acum CIF]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Produccion
+		lineageTag: 2db4ae09-deaf-4dba-8835-c725fb6274a8
+
+	measure 'Acum Inv_Inicial_Prod_Proceso' =
+			(CALCULATE([Inv_Inicial_Prod_Proceso],
+			                        Balance[Mes] = 1,
+			                        Balance[Año] = SELECTEDVALUE(Calendario[Date].[Año])))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Prod Proceso
+		lineageTag: 4a442bd2-4330-425c-9de0-db08d98928ef
+
+	measure 'Acum Costo Prod Proceso' = [Acum Costo Produccion Periodo] + [Acum Inv_Inicial_Prod_Proceso]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Prod Proceso
+		lineageTag: 13a22e2f-c0d1-424e-bf49-625caea640c7
+
+	measure 'Acum Inv_Final_Prod_Proceso' = CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "1410", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes]))*-1
+		displayFolder: Acum Costo Prod Terminado
+		lineageTag: a69c19a1-f0af-423b-bdec-f9e77367d95f
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Acum Costo Prod Terminado' = [Acum Costo Prod Proceso] + [Acum Inv_Final_Prod_Proceso]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Prod Terminado
+		lineageTag: 9107699c-f8f3-422e-9f8d-e651fb60e23e
+
+	measure 'Acum Inv_Inicial_Prod_Terminado' =
+			(CALCULATE([Inv Inicial Prod Terminado],
+			                        Balance[Mes] = 1,
+			                        Balance[Año] = SELECTEDVALUE(Calendario[Date].[Año])))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Prod Dispo Venta
+		lineageTag: da17cdda-3074-4215-9be4-e7e2111e397d
+
+	measure 'Acum Costo Prod Dispo Venta' = [Acum Costo Prod Terminado] + [Acum Inv_Inicial_Prod_Terminado]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Prod Dispo Venta
+		lineageTag: 2953d138-952b-4f1a-8107-0447bc45aecb
+
+	measure 'Acum Retiro Muestras Venta' = CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "52959515", Balance[Mes] = MAX(Balance[Mes]))*-1
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 3b560a42-3264-4bcf-a3be-15facfa51e3a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Dif Real vs Medida' = ([Acum Costo Venta Manufacturados] - [Acum TOTAL REAL])
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 981442b7-9921-493a-9c04-0e90d5b0aceb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Costo Venta Manufacturados' = [Acum Retiro Muestras Venta] + [Acum Traslado de Costos] + [Acum Inv_Final_Prod_Terminado] + [Acum Costo Prod Dispo Venta]
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: ed312084-c1f7-4ad4-b488-64b771463a10
+
+	measure 'Acum Traslado de Costos' =
+			(CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "52059595", Balance[Mes] = Max(Balance[Mes]))
+			                        + CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "52351595", Balance[Mes] = Max(Balance[Mes]))
+			                        + CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "52954595", Balance[Mes] = Max(Balance[Mes])))*-1
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: a6c59ff3-f21f-44ed-83f9-15e142d1e062
+
+	measure 'Acum Inv_Final_Prod_Terminado' = CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "1430", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes]))*-1
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 77e8b15a-a332-47f7-8b32-c4c1f6035c12
+
+		formatStringDefinition = "\$#,0;-\$#,0;\$#,0"
+
+	measure 'Acum TOTAL REAL' = CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl2] = "61", ISBLANK(Balance[Lvl4]))
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: ccffbdf2-30d5-4924-9c1f-117bae8b396f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Acum Retiro Muestras Venta REAL' = ([Acum Retiro Muestras Venta] - [Acum Dif Real vs Medida])
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 22761b88-886e-461d-8cb2-5a92c67ccc41
+
+		formatStringDefinition = "\$#,0;-\$#,0;\$#,0"
+
+	measure 'Acum Costo Venta Manufacturados REAL' = [Acum Retiro Muestras Venta REAL] + [Acum Traslado de Costos] + [Acum Inv_Final_Prod_Terminado] + [Acum Costo Prod Dispo Venta]
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: cb1a5001-625c-45e4-9a24-69e4582677af
+
+	measure '% Costo MP Utilizada' = DIVIDE([Costo MP Utilizada],[Costo Produccion Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: b8166ed9-abab-4686-b605-a4858e055743
+
+	measure 'TOTAL Ventas' = ```
+			
+			((CALCULATE(MAX(Balance[Débito]), Balance[Lvl2] = "41", ISBLANK(Balance[Lvl3])) - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl2] = "41", ISBLANK(Balance[Lvl3])))*-1)
+			+ 
+			((CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "4205", ISBLANK(Balance[Lvl4])) - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "4205", ISBLANK(Balance[Lvl4])))*-1)
+			+ 
+			((CALCULATE(MAX(Balance[Débito]), Balance[Lvl4] = "423565", ISBLANK(Balance[Account])) - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl4] = "423565", ISBLANK(Balance[Account])))*-1)
+			+
+			(((CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "4275", ISBLANK(Balance[Lvl4])) - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "4275", ISBLANK(Balance[Lvl4])))*-1) 
+			+ 
+			(CALCULATE(MAX(Balance[Débito]), Balance[Account] = "42750510") - CALCULATE(MAX(Balance[Crédito]), Balance[Account] = "42750510"))
+			)
+			```
+		lineageTag: 02a9cb91-ea6e-48de-921a-b187b66bdefb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Costo M.O.D' = DIVIDE([Costo M.O.D.],[Costo Produccion Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 7a1fda41-734f-4368-90c4-f0e4ebf9978d
+
+	measure '% CIF' = DIVIDE([CIF],[Costo Produccion Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 9b9cee6e-dcde-403e-ae4d-da5a3da8cafc
+
+	measure '% Costos Produccion Periodo' = [% Costo MP Utilizada] + [% Costo M.O.D] + [% CIF]
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: d6104128-f0da-4c93-8461-98ce394ba91c
+
+	measure '% Costos Ventas' = DIVIDE([Costo Venta Manufacturados REAL],[TOTAL Ventas])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 3ed8bf0b-0504-41d4-b41c-4522ea8cb27d
+
+	measure 'M.A Costo MP Utilizada' = Calculate([Costo MP Utilizada], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 95b68d87-3011-4258-af5d-59d832610310
+
+	measure 2023 = ```
+			
+			IF(HASONEVALUE('Nombres Medidas'[Nivel3]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel3]),
+			            "Compras_comercializado", [Compras_Comercializado],
+			            "ComprasMP", [ComprasMP],
+			            "Inv_Final_MP", [Inv_Final_MP],
+			            "Inv_final_PC", [Inv_final_PC],
+			            "Inv_Inicial_MP", [Inv_Inicial_MP],
+			            "Inv_Inicial_PC", [Inv_Inicial_PC],
+			            "Retiro MP Moldes", [Retiro MP Moldes],
+			            "SS a la MP", [SS a la MP],
+			            "MO Temp", [MO Temp],
+			            "MO Vinc", [MO Vinc],
+			            "Servicios", [Servicios],
+			            "Otros CIF", [Otros CIF],
+			            "MO Indirecta", [MO Indirecta],
+			            "Mantenimiento", [Mantenimiento],
+			            "Impuestos", [Impuestos],
+			            "Honorarios", [Honorarios],
+			            "Depresiacion", [Depreciacion],
+			            "Arrendamiento", [Arrendamiento],
+			            "Adecuacion", [Adecuacion],
+			            "NA", 0
+			        ),
+			IF(HASONEVALUE('Nombres Medidas'[Nivel2]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel2]),
+			        "Costo MP Utilizada", [Costo MP Utilizada],
+			        "Costo M.O.D.", [Costo M.O.D.],
+			        "CIF", [CIF],
+			        "Inv_Inicial_Prod_Proc", [Inv_Inicial_Prod_Proceso]), 
+			IF(HASONEVALUE('Nombres Medidas'[Nivel1]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel1]),
+			        "Costo Produccion Periodo", [Costo Produccion Periodo],
+			        "Costo Productos en Proceso", [Costo Prod Proceso]
+			))
+			   ))
+			```
+		lineageTag: 3466d2c6-f0a1-4cb3-824c-4355ef6258ac
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Mes Anterior' =
+			
+			IF(HASONEVALUE('Nombres Medidas'[Nivel3]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel3]),
+			            "Compras_comercializado", [M.A Compras_Comercializado],
+			            "ComprasMP", [M.A Compras MP],
+			            "Inv_Final_MP", [M.A Inv_Final_MP],
+			            "Inv_final_PC", [M.A Inv_final_PC],
+			            "Inv_Inicial_MP", [M.A Inv_Inicial_MP],
+			            "Inv_Inicial_PC", [M.A Inv_Inicial_PC],
+			            "Retiro MP Moldes", [M.A Retiro MP Moldes],
+			            "SS a la MP", [M.A SS a la MP],
+			            "MO Temp", [M.A MO Temp],
+			            "MO Vinc", [M.A MO Vinc],
+			            "Servicios",[M.A Servicios],
+			            "Otros CIF",[M.A Otros CIF],
+			            "MO Indirecta",[M.A MO Indirecta],
+			            "Mantenimiento",[M.A Mantenimiento],
+			            "Impuestos",[M.A Impuestos],
+			            "Honorarios",[M.A Honorarios],
+			            "Depresiacion",[M.A Depresiacion],
+			            "Arrendamiento",[M.A Arrendamiento],
+			            "Adecuacion",[M.A Adecuacion]
+			        ),
+			IF(HASONEVALUE('Nombres Medidas'[Nivel2]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel2]),
+			        "Costo MP Utilizada", [M.A Costo MP Utilizada],
+			        "Costo M.O.D.", [M.A Costo M.O.D.],
+			        "CIF", [M.A CIF]),
+			IF(HASONEVALUE('Nombres Medidas'[Nivel1]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel1]),
+			        "Costo Produccion Periodo", [M.A Costo Produccion Periodo]
+			))
+			   ))
+		lineageTag: c1d2dda1-0310-4317-85bd-812d80c89d4a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'M.A Costo M.O.D.' = CALCULATE([Costo M.O.D.], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 3e742225-fc2d-4ad9-a242-a5d9f2f84f48
+
+	measure 'M.A CIF' = CALCULATE([CIF], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 2c13034f-c45e-4aa9-8e19-0ef2510b346a
+
+	measure % =
+			
+			IF(HASONEVALUE('Nombres Medidas'[Nivel3]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel3]),
+			            "Compras_comercializado", 0,
+			            "ComprasMP", 0,
+			            "Inv_Final_MP", 0,
+			            "Inv_final_PC", 0,
+			            "Inv_Inicial_MP", 0,
+			            "Inv_Inicial_PC", 0,
+			            "Retiro MP Moldes", 0,
+			            "SS a la MP", 0,
+			            "MO Temp", 0,
+			            "MO Vinc", 0,
+			            "Servicios",0,
+			            "Otros CIF",0,
+			            "MO Indirecta",0,
+			            "Mantenimiento",0,
+			            "Impuestos",0,
+			            "Honorarios",0,
+			            "Depresiacion",0,
+			            "Arrendamiento",0,
+			            "Adecuacion",0
+			        ),
+			IF(HASONEVALUE('Nombres Medidas'[Nivel2]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel2]),
+			        "Costo MP Utilizada", [% Costo MP Utilizada],
+			        "Costo M.O.D.", [% Costo M.O.D],
+			        "CIF", [% CIF]),
+			IF(HASONEVALUE('Nombres Medidas'[Nivel1]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel1]),
+			        "Costo Produccion Periodo", [% Costos Produccion Periodo]
+			))
+			   ))
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 5b8e03b6-c942-471d-bb9d-8db5a2680686
+
+	measure 'M.A % Costo MP Utilizada' = CALCULATE([% Costo MP Utilizada], PREVIOUSMONTH(Calendario[Date]))
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: caa25c8c-6199-4e15-b1b6-e2a8af671538
+
+	measure 'M.A % Costo M.O.D.' = CALCULATE([% Costo M.O.D], PREVIOUSMONTH(Calendario[Date]))
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: ae72a528-1122-4c46-bcb0-5c3069958a89
+
+	measure 'M.A % CIF' = CALCULATE([% CIF], PREVIOUSMONTH(Calendario[Date]))
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: d2383e53-da27-4637-8f48-64a65a45bd3c
+
+	measure '% Mes Anterior' =
+			
+			IF(HASONEVALUE('Nombres Medidas'[Nivel3]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel3]),
+			            "Compras_comercializado", 0,
+			            "ComprasMP",0,
+			            "Inv_Final_MP", 0,
+			            "Inv_final_PC", 0,
+			            "Inv_Inicial_MP", 0,
+			            "Inv_Inicial_PC", 0,
+			            "Retiro MP Moldes", 0,
+			            "SS a la MP", 0,
+			            "MO Temp", 0,
+			            "MO Vinc", 0,
+			            "Servicios",0,
+			            "Otros CIF",0,
+			            "MO Indirecta",0,
+			            "Mantenimiento",0,
+			            "Impuestos",0,
+			            "Honorarios",0,
+			            "Depresiacion",0,
+			            "Arrendamiento",0,
+			            "Adecuacion",0
+			        ),
+			IF(HASONEVALUE('Nombres Medidas'[Nivel2]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel2]),
+			        "Costo MP Utilizada", [M.A % Costo MP Utilizada],
+			        "Costo M.O.D.", [M.A % Costo M.O.D.],
+			        "CIF", [M.A % CIF]),
+			IF(HASONEVALUE('Nombres Medidas'[Nivel1]),
+			    SWITCH(
+			        VALUES('Nombres Medidas'[Nivel1]),
+			        "Costo Produccion Periodo", [M.A % Costos Produccion Periodo]
+			))
+			   ))
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 0fa475ce-909c-44cc-b4f9-4c8e49358e5a
+
+	measure Prueba = ```
+			SWITCH(
+			        VALUES('Nombres Medidas'[Nivel3]),        
+			            "Compras_comercializado", [Compras_Comercializado],
+			            "ComprasMP", [ComprasMP])
+			```
+		lineageTag: 48796215-230a-45d8-a6f0-e541453a2b0e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Variacion = [2023] - [Mes Anterior]
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 238fde8c-9bce-4a79-88ba-f8baa165b51a
+
+	measure 'M.A Compras_Comercializado' = CALCULATE([Compras_Comercializado], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 1e35af7b-423b-4708-b757-53aab219eb60
+
+	measure 'M.A Compras MP' = CALCULATE([ComprasMP], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 46bf01b2-7d34-42cf-9907-57182f8ce081
+
+	measure 'M.A Costo Produccion Periodo' = CALCULATE([Costo Produccion Periodo], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 93871555-8549-4f3d-ba7f-65fabd103ddd
+
+	measure '% Compras_Comercializado' = 0
+		formatString: 0
+		lineageTag: 47bd03cb-e51e-4ae7-accd-81308dd8bce2
+
+	measure '% ComprasMP' = 0
+		formatString: 0
+		lineageTag: 71f6baeb-3c57-4fe1-82c7-d04531c99edb
+
+	measure 'M.A % Costos Produccion Periodo' = CALCULATE([% Costos Produccion Periodo], PREVIOUSMONTH(Calendario[Date]))
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 94df3a2e-9a69-439c-b890-953e05e71817
+
+	measure 'M.A Inv_Final_MP' = CALCULATE([Inv_Final_MP], PREVIOUSMONTH(Calendario[Date]))
+		lineageTag: fa4bc351-4c44-405b-8364-81d48febbf5f
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'M.A Inv_final_PC' = CALCULATE([Inv_final_PC], PREVIOUSMONTH(Calendario[Date]))
+		lineageTag: 823e8cba-45f3-4e4a-b854-e2c3e2473491
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'M.A Inv_Inicial_MP' = CALCULATE([Inv_Inicial_MP], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 76fb851b-6ee7-4b2c-9b12-563b5a9af282
+
+	measure Medida
+		lineageTag: d1bbbc5d-0ccb-4a05-9a8c-db4a387d924e
+
+		annotation 43dbc3e8-3a1c-4b6f-9923-b49ff7d6691c = True
+
+	measure 'M.A Inv_Inicial_PC' = CALCULATE([Inv_Inicial_PC], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 7c00fa6d-99b0-4ae5-b24a-8920af9099a2
+
+	measure 'M.A Retiro MP Moldes' = CALCULATE([Retiro MP Moldes], PREVIOUSMONTH(Calendario[Date]))
+		lineageTag: 0ae311ab-f762-4ae9-95d2-c65088927c16
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'M.A SS a la MP' = CALCULATE([SS a la MP], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 1320af40-fb2d-428f-9d21-ae0f4e65ea31
+
+	measure 'M.A MO Temp' = CALCULATE([MO Temp], PREVIOUSMONTH(Calendario[Date]))
+		lineageTag: 183d8d8d-0d91-4842-9215-e503509ee26a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'M.A MO Vinc' = CALCULATE([MO Vinc], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 9fd07ea4-d900-40cd-9b0a-ca6c9782768e
+
+	measure 'M.A Adecuacion' = CALCULATE([Adecuacion], PREVIOUSMONTH(Calendario[Date]))
+		lineageTag: d470eecc-38f1-4d13-b7cf-a09a5a4ea4b7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'M.A Arrendamiento' = CALCULATE([Arrendamiento], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 89b3dea9-cce7-4c71-9c7e-9005d0006742
+
+	measure 'M.A Depresiacion' = CALCULATE([Depreciacion], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 333bb405-e13b-4c1b-9d2f-207ba69a55d0
+
+	measure 'M.A Honorarios' = CALCULATE([Honorarios], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 15ad1f05-1ee2-4836-877c-5c38a42aba72
+
+	measure 'M.A Impuestos' = CALCULATE([Impuestos], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: dd9ad4b5-fd9f-4a4f-92c1-185acf79910d
+
+	measure 'M.A Mantenimiento' = CALCULATE([Mantenimiento], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: a4b0d582-baeb-4336-90fb-837d372ed329
+
+	measure 'M.A MO Indirecta' = CALCULATE([MO Indirecta], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 99c8e146-6c7f-454d-bc75-dafbca5e6210
+
+	measure 'M.A Otros CIF' = CALCULATE([Otros CIF], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: a0c7a3ae-5655-47be-b66e-b8541bc86bd1
+
+	measure 'M.A Servicios' = CALCULATE([Servicios], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: cb876dfc-7138-40fe-afbe-434c21ef1fbd
+
+	measure '% Variacion' = DIVIDE([Variacion], [Mes Anterior])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 272e7b31-20e8-4349-8b5a-a64d55fbdabf
+
+	measure 'Gastos de viaje' = CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "7355") - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "7355")
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: CIF
+		lineageTag: 111789bc-3bd9-4a78-80dc-f20b3f4d3bce
+
+	measure 'Acum Gastos de viaje' = CALCULATE(MAx(Balance[Saldo Final]), Balance[Lvl3] = "7355",Balance[Mes] = MAX(Balance[Mes]))
+		displayFolder: Acum CIF
+		lineageTag: da3ee18d-ca11-48e3-89e0-6aea8cee44f0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Label Costo MP Utilizada' = "Costo MP Utilizad"
+		lineageTag: eaee5426-d446-48cb-9423-2168f85e466c
+
+	measure 'Var Costo MP Utilizada' = 'Medidas Estado Costo'[Costo MP Utilizada] - [M.A Costo MP Utilizada]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 295bde33-8984-4025-b10f-e6f45884a528
+
+	measure '% Var Costo MP Utilizada' = DIVIDE([Var Costo MP Utilizada], [M.A Costo MP Utilizada])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: b44c599b-3349-429b-87c4-c5b24b6fa5ee
+
+	measure 'Mes Actual' = UPPER(SELECTEDVALUE(Calendario[Date].[Mes]))
+		lineageTag: 65602749-0bce-4e3c-8251-df1f18277303
+
+	measure Blanco = ""
+		lineageTag: 3cf9fe61-34b4-4b77-91e7-935454d75ac4
+
+	measure Porcentaje = "%"
+		lineageTag: b486a6f5-8cb4-4af1-b0ee-f7d886476036
+
+	measure 'Mes Anterior 2' =
+			UPPER(SWITCH([Mes Actual],
+			                        "Enero", "Diciembre",
+			                        "Febrero", "Enero",
+			                        "Marzo", "Febrero",
+			                        "Abril", "Marzo",
+			                        "Mayo", "Abril",
+			                        "Junio", "Mayo",
+			                        "Julio", "Junio",
+			                        "Agosto", "Julio",
+			                        "Septiembre", "Agosto",
+			                        "Octubre", "Septiembre",
+			                        "Noviembre", "Octubre",
+			                        "Diciembre", "Noviembre"))
+		lineageTag: 014e1a2c-086d-4c9a-a300-fedb8510a858
+
+	measure '% Mes Anterior 2' = "% MES ANTERIOR"
+		lineageTag: 7b92377f-bf7a-4dc8-8762-35c3fa7403ab
+
+	measure 'Variacion 2' = "VARIACIÓN"
+		lineageTag: 425638fd-2774-476b-bc26-befa54609042
+
+	measure '% VARIACIÓN' = "% VARIACIÓN"
+		lineageTag: 65cc31d5-51e2-44d8-a8e2-ce1851dbfc59
+
+	measure 'Label Costo M.O.D.' = "Costo M.O.D"
+		lineageTag: 8f252d9d-a40b-4717-9a64-52cd9f7ebe6a
+
+	measure 'Var Costo M.O.D' = 'Medidas Estado Costo'[Costo M.O.D.] - [M.A Costo M.O.D.]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 5c9f049e-36f5-4a2e-afdf-cca9bc964402
+
+	measure '% Var Costo M.O.D' = DIVIDE([Var Costo M.O.D], [Var Costo Prod Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: ba5572b9-2707-41b7-9d04-7d99fc3ef6fe
+
+	measure 'Label Costo Produccion del Periodo' = "C. Prod Periodo"
+		lineageTag: fe2d297b-7b26-4a10-a2fa-a42fde189c80
+
+	measure 'Label CIF' = "CIF"
+		lineageTag: b222937e-a750-4b45-8094-cbe68b022149
+
+	measure 'Var CIF' = [CIF] - [M.A CIF]
+		lineageTag: 5cc56144-96cd-434f-8a93-87fd2377b956
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var CIF' = DIVIDE([Var CIF], [Var Costo Prod Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: c0d09c11-2d2a-4aec-9024-1eb56db85e73
+
+	measure 'Var Costo Prod Periodo' = [Costo Produccion Periodo] - [M.A Costo Produccion Periodo]
+		lineageTag: e4404795-29da-40e1-9f85-ad5a10b895ea
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Costo Prod Periodo' = [% Var Costo MP Utilizada] + [% Var Costo M.O.D] + [% Var CIF]
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: c1a42647-84e9-47e0-9efb-2238cef901a3
+
+	measure 'Label Inv Inicial MP' = "Inv Inicial MP"
+		lineageTag: 7ec61faf-47b6-4a44-8806-4e489a540a9b
+
+	measure '% Inv_Inicial_MP' = DIVIDE([Costo MP Utilizada], [Inv_Inicial_MP])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 0048d189-487c-4fa3-bc2a-a935b70ab464
+
+	measure 'Blanco 2' = ""
+		lineageTag: c0ee8e7e-2253-4b1b-b1bc-0a75f1cc403d
+
+	measure 'Blanco 3' = ""
+		lineageTag: 48a42e10-3cb7-4a90-b919-cee4692682b8
+
+	measure 'Blanco 4' = ""
+		lineageTag: 300e3cdd-616a-48ec-83a8-e43f2bbf2c15
+
+	measure 'Blanco 5' = ""
+		lineageTag: 1c66b0ee-0b3f-4819-84b3-67ef158d420b
+
+	measure 'Label Compras MP' = "Compras MP"
+		lineageTag: 3d57c0db-d9d6-4b8c-9a67-a5e3c245b7a3
+
+	measure 'Blanco 6' = ""
+		lineageTag: 13df8907-8137-4fea-be6c-3e914d3e7e18
+
+	measure 'Blanco 7' = ""
+		lineageTag: 2097eba2-c07c-4341-9649-19aa1d790b10
+
+	measure 'Blanco 8' = ""
+		lineageTag: 0085d555-59ec-49d8-b790-9abef6f7b393
+
+	measure 'Blanco 9' = ""
+		lineageTag: b206a4dc-e2b8-4507-a9f4-d8dbdcc12c5a
+
+	measure 'Label SS a la MP' = "SS a la MP"
+		lineageTag: 83eeef49-95b3-4725-af15-255b8edf1476
+
+	measure 'Blanco 10' = ""
+		lineageTag: 1c257a60-babe-42df-b3e6-b5fe560742e7
+
+	measure 'Blanco 11' = ""
+		lineageTag: a0b8c4ac-3848-471f-8b6e-15b888fb9e5c
+
+	measure 'Blanco 12' = ""
+		lineageTag: 44743f4a-808c-4c3b-9000-a16353c4cd6f
+
+	measure 'Blanco 13' = ""
+		lineageTag: d2eab1ea-95de-4adb-9024-5607b759d701
+
+	measure 'Label Retiro MP para Moldes' = "Retiro MP Moldes"
+		lineageTag: 5bd1b639-a7aa-4daa-bd61-563908792cb7
+
+	measure 'Blanco 14' = ""
+		lineageTag: f3325788-e549-476c-b832-b393da14bc5a
+
+	measure 'Blanco 15' = ""
+		lineageTag: e4cfe40f-91df-4e3a-b3a1-bd3a06072b45
+
+	measure 'Blanco 16' = ""
+		lineageTag: d21063f7-e506-482e-b722-8aae22fa5177
+
+	measure 'Blanco 17' = ""
+		lineageTag: ba05caa7-b66f-4e45-bb5b-ade5e28e1311
+
+	measure 'Blanco 18' = ""
+		lineageTag: bfbb9bb3-dd38-435e-a44b-5e523a002111
+
+	measure 'Blanco 19' = ""
+		lineageTag: 2a14962a-d59d-4476-bbb7-bace1e5a9a1e
+
+	measure 'Blanco 20' = ""
+		lineageTag: 0a78d31e-f556-432e-a9f9-808a176c0228
+
+	measure 'Blanco 21' = ""
+		lineageTag: 99ce16e1-8696-4ae2-855e-a62e54479865
+
+	measure 'Label Inv Final MP' = "Inv Final MP"
+		lineageTag: 2134fa5e-b9af-4131-93a1-49ff19dc202a
+
+	measure 'Label Inv Ini Prod Com' = "Inv Ini Prod Com"
+		lineageTag: 82570eb5-2606-4e52-b064-96638488b751
+
+	measure 'Blanco 22' = ""
+		lineageTag: 7b3d1d4c-ef30-4412-9c9f-e16f5065945e
+
+	measure 'Blanco 23' = ""
+		lineageTag: 4ab61008-5c01-456d-b43e-3498199a4694
+
+	measure 'Blanco 24' = ""
+		lineageTag: 511f7c36-6998-45fe-9aba-4bb56cc98f22
+
+	measure 'Blanco 25' = ""
+		lineageTag: 51f1a7e9-1841-42e5-8292-f23145118f4e
+
+	measure 'Label Compras Comercializados' = "Compras Com"
+		lineageTag: 9d3580aa-193c-4c4d-bcf6-5b972ed76429
+
+	measure 'Blanco 26' = ""
+		lineageTag: 26c942a8-1376-4e60-bd68-10ccc9a7e2a1
+
+	measure 'Blanco 27' = ""
+		lineageTag: dcd0895e-bb28-4776-a018-bd0fc127d4af
+
+	measure 'Blanco 28' = ""
+		lineageTag: 4f8b7a4c-9473-4dd5-b0f0-d43daf257317
+
+	measure 'Blanco 29' = ""
+		lineageTag: b78a5823-0e4f-4977-9d7a-155c18b39c48
+
+	measure 'Label Inv Final PC' = "Inv Final PC"
+		lineageTag: 7cd7fd39-7a41-470b-8175-fc22d67bf9c0
+
+	measure 'Blanco 30' = ""
+		lineageTag: 9647d5e3-4dce-46a0-a046-a25b88c83bea
+
+	measure 'Blanco 31' = ""
+		lineageTag: ae5fb3d5-2cc5-4c63-b1bd-c431f151428f
+
+	measure 'Blanco 32' = ""
+		lineageTag: 728a7cc2-971f-4f30-8f4d-7d58a4fe3631
+
+	measure 'Blanco 33' = ""
+		lineageTag: 3e8e0e12-040e-46c3-b35b-2deccda15716
+
+	measure 'Label Costo Prod Proceso' = "C. Prod Proceso"
+		lineageTag: d3127037-9b30-414d-b01d-52efebd91929
+
+	measure 'M.A Costo Producto en Proceso' = CALCULATE([Costo Prod Proceso], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 1cf008d2-98fc-4b3a-ab5c-bbc822a80f66
+
+	measure 'Var Costo Prod en Proceso' = [Costo Prod Proceso] - [M.A Costo Producto en Proceso]
+		lineageTag: ae644033-30d5-459e-bbe3-45089b9569fd
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Label Costo Prod Terminado' = "C. Prod Terminado"
+		lineageTag: 01d52d33-2a73-4a77-a72f-8191ae600272
+
+	measure 'M.A Costo Prod Terminado' = CALCULATE([Costo Prod Terminado], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: e9e16621-52f9-4cfa-adcc-5551c4b28e47
+
+	measure 'Var Costo Prod Terminado' = [Costo Prod Terminado] - [M.A Costo Prod Terminado]
+		lineageTag: 10d96e91-c57b-43e6-b86d-32dc68d8007d
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Label Costo Prod Disp Venta' = "C. Prod Disp Vent"
+		lineageTag: 7493acd6-b238-45ae-9b5b-3427c06059db
+
+	measure 'M.A Costo Prod Disp Venta' = CALCULATE([Costo Prod Dispo Venta], PREVIOUSMONTH(Calendario[Date]))
+		lineageTag: c5b51013-3687-4b19-8678-b96618a2ebbc
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Var Costo Prod Disp Venta' = [Costo Prod Dispo Venta] - [M.A Costo Prod Disp Venta]
+		lineageTag: fa0a33b4-89a7-4992-aa33-49a652d442d7
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Label Costo Venta Manufacturados' = "C. Venta Manufac."
+		lineageTag: a8588188-1ead-47da-856c-0ffe16553c66
+
+	measure 'M.A Costo Venta Manufacturados' = CALCULATE('Medidas Estado Costo'[Costo Venta Manufacturados REAL], PREVIOUSMONTH(Calendario[Date]))
+		lineageTag: f0d9bf49-3796-4e78-bc9c-89b8bff4cc48
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Var Costo Venta Manufacturado' = [Costo Venta Manufacturados REAL] - [M.A Costo Venta Manufacturados]
+		lineageTag: 299eec0f-fa28-4114-a5af-4bf2a01128d3
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Label Costo M.O.D' = "Costo M.O.D."
+		lineageTag: 64491a59-3860-48cb-bea1-3d2819665573
+
+	measure 'Label M.O. Vinculados' = "M.O. Vinculados"
+		lineageTag: 3dfa6473-4be7-479a-8999-4bbaec5fcc68
+
+	measure 'Label M.O Temporales' = "M.O. Temporales"
+		lineageTag: 70f95c17-798a-4fa6-92de-6f64c22edae5
+
+	measure 'M.A M.O. Temp' = CALCULATE([MO Temp], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: cd034fc9-6575-4523-bc48-dd3e95d06195
+
+	measure 'Label M.O. Indirecta' = "M.O. Indirecta"
+		lineageTag: 184804af-d0f2-4f59-81ac-48435109f916
+
+	measure 'Label Honorarios' = "Honorarios"
+		lineageTag: 6e5896d4-02bf-49c9-b4cf-59833ab079b7
+
+	measure 'Label Impuestos' = "Impuestos"
+		lineageTag: 5f686a63-bd34-4639-9e99-ed952df512ca
+
+	measure 'Label Arrendamiento' = "Arrendamiento"
+		lineageTag: ec6aa573-8b01-4cba-afeb-0ba203bbb3d1
+
+	measure 'Label Servicios' = "Servicios"
+		lineageTag: 1cfcedbf-5610-4c41-b1b5-132c5be881d4
+
+	measure 'Label Mantenimiento' = ```
+			"Mantenimiento" 
+			```
+		lineageTag: 8fa0f114-b30d-4880-894c-64530b70841c
+
+	measure 'Label Gastos Viaje' = "Gastos de Viaje"
+		lineageTag: 4518eedb-e4fe-4a0e-aa30-645b865fb2a8
+
+	measure 'M.A Gastos de Viaje' = CALCULATE([Gastos de viaje], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 9fe49173-a150-468b-afb1-75bb9cafb3c3
+
+	measure 'Label Depreciaciones' = "Depreciaciones"
+		displayFolder: CIF
+		lineageTag: 9d4f5f76-5db2-4569-80e4-8ec5fb5c48d5
+
+	measure 'Label Otros CIF' = "Otros CIF"
+		displayFolder: CIF
+		lineageTag: 09993b30-6bd7-408b-9999-c90febc1a9e8
+
+	measure 'Label Inv Inicial Prod Proceso' = "Inv Ini Prod Proc"
+		displayFolder: Costo Prod Proceso
+		lineageTag: 255b7e88-072f-47f8-9015-adeedd86c1de
+
+	measure 'M.A Inv_Inicial_Prod_Proceso' = CALCULATE([Inv_Inicial_Prod_Proceso], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo Prod Proceso
+		lineageTag: e00cb114-3f26-407e-a8dc-df3632a08b3a
+
+	measure 'Var Costo Prod Proceso' = [Costo Prod Proceso] - [M.A Costo Producto en Proceso]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 2b68b273-4f01-4a53-9b66-68551144c20c
+
+	measure '% Var Costo Prod Proceso' = DIVIDE([Var Costo Prod Proceso], [M.A Costo Producto en Proceso])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: c95063f2-efd1-4b87-bf4e-75d3c443da95
+
+	measure 'Label Inv_final_Prod_Proceso' = "Inv final Prod Proc"
+		lineageTag: f4741984-ecc3-4154-a890-cf3165349920
+
+	measure 'M.A Inv_final_Prod_Proceso' = CALCULATE([Inv_final_Prod_Proceso], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Costo Prod Terminado
+		lineageTag: a6b74c40-58eb-4283-a737-6d7d6fe0cbfb
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% var Costo Prod Terminado' = DIVIDE([Var Costo Prod Terminado], [M.A Costo Prod Terminado])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 8bb36005-cc76-491a-8020-b099ae7615eb
+
+	measure 'Label Inv Ini Prod Terminados' = "Inv Ini Prod Termi"
+		lineageTag: 1d7072a6-9418-403e-b5ba-af8bf6af1106
+
+	measure 'M.A Inv Inicial Prod Terminado' = CALCULATE([Inv Inicial Prod Terminado], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Costo Prod Dispo Venta
+		lineageTag: ee393e70-3fba-4e31-8846-0d8b906d2972
+
+	measure 'Medida 2'
+		displayFolder: Costo Prod Dispo Venta
+		lineageTag: 86ba9690-c60e-438e-bc79-5a4d94e1c926
+
+		annotation 43dbc3e8-3a1c-4b6f-9923-b49ff7d6691c = True
+
+	measure 'Label Retiro Muestra Venta' = "Retiro Muestra Ven"
+		lineageTag: ef016272-ff92-4854-9535-12848c7f0004
+
+	measure 'M.A Retiro Muestra Venta' = CALCULATE([Retiro Muestra Venta Real], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Costo Venta Manufacturados
+		lineageTag: 52ab43c7-41cb-4e35-8abb-b84b2c163bc8
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Label Traslado de Costos' = "Traslado de Costos"
+		lineageTag: 7efddc6a-1612-4c1b-a85b-0648ae5a0b66
+
+	measure 'M.A Traslado de Costos' = CALCULATE([Traslado de Costos], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Costo Venta Manufacturados
+		lineageTag: 20ecc01c-8894-481d-aeee-aaf341723d0b
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Label Inv Final Prod Term' = "Inv Fin Prod Term"
+		lineageTag: fe95c33c-f429-473b-9229-fcdbd2542ff0
+
+	measure 'M.A Inv_final_Prod_Term' = CALCULATE([Inv_Final_Prod_terminado], PREVIOUSMONTH(Calendario[Date]))
+		displayFolder: Costo Venta Manufacturados
+		lineageTag: cbd433c3-3c9a-4191-a583-bf57ae0dacf7
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Medida 3'
+		lineageTag: b1ab0d92-8880-4066-9f88-ace7d58e7cdd
+
+		annotation 43dbc3e8-3a1c-4b6f-9923-b49ff7d6691c = True
+
+	measure '% Var Costo Venta Manufacturado' = DIVIDE([Var Costo Venta Manufacturado], [M.A Costo Venta Manufacturados])
+		formatString: #,0.00\ %;-#,0.00\ %;#,0.00\ %
+		lineageTag: 4d8779a4-5623-4505-9ebd-62153507da80
+
+	measure 'Label Total Costo de Venta' = "Total Costo Venta"
+		lineageTag: c34a3fbb-06c0-444f-89ca-709ad58f3db4
+
+	measure 'A.A Acum Costo Prod Periodo' = [A.A Acum Costo MP Utilizada] +  [A.A Acum Costo M.O.D.] +  [A.A Acum CIF]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Produccion
+		lineageTag: db00f2e4-cf59-4eaf-8c70-ec1f6188dd06
+
+	measure Selected = MONTH(MAX(Calendario[Date]))
+		formatString: 0
+		lineageTag: 656c8a5a-aedc-42a2-ae2a-4956eaaa9fa8
+
+	measure 'Año Actual Acum' = YEAR(MAX(Calendario[Date]))
+		formatString: 0
+		lineageTag: b7c86015-9ccf-43d9-8eff-dc05a126be7c
+
+	measure 'Año Anterior' = [Año Actual Acum] - 1
+		formatString: 0
+		lineageTag: e22f6766-d1d6-4e42-828f-c7992bc0b9e4
+
+	measure 'Selected 2' = MONTH(MAX(Calendario[Date]))-1
+		formatString: 0
+		lineageTag: 9b8dd3d2-1f3d-4303-994b-1fba0434b31e
+
+	measure 'A.A Acum Costo Prod Proceso' = [A.A Acum Costo Prod Periodo] + [A.A Acum Inv Ini Prod Proc]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Prod Proceso
+		lineageTag: 60772774-7ebc-4dfe-a3bd-8ac36264b1f0
+
+	measure 'A.A Acum Costo Prod Terminado' = [A.A Acum Costo Prod Proceso] + [A.A Acum Inv_final_Prod_Proc]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 0220dd24-19d5-44e1-a4b1-992a8c043825
+
+	measure 'A.A Acum Costo Prod Dispo Venta' = [A.A Acum Costo Prod Terminado] + [A.A Acum Inv_Inicial_Prod_Terminado]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Prod Dispo Venta
+		lineageTag: 2dd798a4-680a-4c29-8f7d-d287eda4074a
+
+	measure 'A.A Acum Costo Venta Manufacturados REAL' = CALCULATE([Acum Costo Venta Manufacturados REAL], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: fdde3e46-ffea-4ac2-b995-ab052e829efd
+
+	measure '% Var Costo Prod Periodo 2' = DIVIDE([Var Costo Prod Periodo], [M.A Costo Produccion Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 311d4ba1-b91f-4af8-906d-b78be60899b1
+
+	measure '% var Costo Prod Disp Venta' = DIVIDE([Var Costo Prod Disp Venta], [M.A Costo Prod Disp Venta])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 371578a6-a8be-4eeb-aca2-4efc4baea391
+
+	measure 'Var Acum Costo Produccion Periodo' = [Acum Costo Produccion Periodo] - [A.A Acum Costo Prod Periodo]
+		displayFolder: Acum Costo Prod Dispo Venta
+		lineageTag: e2730590-0d84-4ccd-b620-7416390f3b32
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Acum Costo Prod Proceso' = [Acum Costo Prod Proceso] - [A.A Acum Costo Prod Proceso]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Prod Proceso
+		lineageTag: 31858718-f29f-48aa-9e10-cd20b5645c70
+
+	measure 'Var Acum Costo Prod Terminado' = [Acum Costo Prod Terminado] - [A.A Acum Costo Prod Terminado]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Prod Terminado
+		lineageTag: 954154b2-7803-4f83-aca6-c7e758fad1a2
+
+	measure 'Var Acum Costo Prod Dispo Venta' = [Acum Costo Prod Dispo Venta] - [A.A Acum Costo Prod Dispo Venta]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Prod Dispo Venta
+		lineageTag: 24e19ca9-7ca8-44ef-a3bb-8b1c4e2e05fe
+
+	measure 'Var Acum Costo Venta Manufacturados REAL' = [Acum Costo Venta Manufacturados REAL] - [A.A Acum Costo Venta Manufacturados REAL]
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 186a2ea3-56d5-4c02-be81-ddc0d1b5ff4a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Selected 3' = SELECTEDVALUE(Balance[Fecha])
+		formatString: General Date
+		lineageTag: 90a7dcd7-13fb-41d1-ba4f-86fd8787093f
+
+	measure '% Acum Costo MP Utilizada' = DIVIDE([Acum Costo MP Utilizada],[Acum Costo Produccion Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 7904d202-c37d-4aae-bc73-3777e26095e6
+
+	measure 'A.A Acum Costo MP Utilizada' = [A.A Acum Inv_Inicial_MP] + [A.A Acum Compras MP] + [A.A Acum SS a la MP] + [A.A Acum Retiro MP Moldes] + [A.A Acum Inv_Final_MP] + [A.A Acum Inv_Inicial_PC] + [A.A Acum Compras Comercializado] + [A.A Acum Inv_Final_PC]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo Produccion
+		lineageTag: 67a348b1-4c35-4f9b-8fe5-95ab8c6cecc4
+
+	measure 'A.A Acum Inv_Inicial_MP' =
+			CALCULATE((CALCULATE(Max(Balance[Saldo Inicial]),
+			                        Balance[Lvl3] = "1405",
+			                        Balance[Mes] = 1))
+			                    - (CALCULATE(Max(Balance[Saldo Inicial]),
+			                        Balance[Account] = "14050575",
+			                        Balance[Mes] = 1))
+			                    - (CALCULATE(Max(Balance[Saldo Inicial]),
+			                        Balance[Account] = "14050595",
+			                        Balance[Mes] = 1)), SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: a47ef0da-15d1-4c20-91de-c26d3e66d52e
+
+	measure 'A.A Acum Compras MP' = CALCULATE([Acum Compras MP], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: cf7e7e54-9ddd-4c1e-ab69-909867f14eb8
+
+	measure 'A.A Acum SS a la MP' = CALCULATE([Acum SS a la MP], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: 4523fd80-8580-48da-bb18-bbefc8b6b50b
+
+	measure 'A.A Acum Retiro MP Moldes' =
+			CALCULATE((CALCULATE(Max(Balance[Saldo Final]),
+			                        Balance[Account] = "73959510",
+			                        Balance[Mes] = MAX(Balance[Mes]))), SAMEPERIODLASTYEAR(Calendario[Date]))*-1
+		lineageTag: ce87c4d4-35c1-4ab6-86cb-4822a11186ee
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'A.A Acum Inv_Final_MP' = CALCULATE([Acum Inv_Final_MP], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: 920eb129-6026-4f29-9325-264ea9715688
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'A.A Acum Inv_Inicial_PC' =
+			CALCULATE((CALCULATE(Max(Balance[Saldo Inicial]),
+			                        Balance[Lvl3] = "1435",
+			                        Balance[Mes] = 1)), SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: b9162733-0169-4f71-84cb-b2deb9ff4ad6
+
+	measure 'A.A Acum Compras Comercializado' = CALCULATE([Acum Compras_Comercializado], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: db85a4d2-cc11-45eb-b5da-421270334d01
+
+	measure 'A.A Acum Inv_Final_PC' = CALCULATE([Acum Inv_Final_PC], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Costo MP Utilizada
+		lineageTag: 960fb044-901e-4efd-bb38-c7499baa2e6b
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'Var Acum Costo MP Utilizada' = [Acum Costo MP Utilizada] - [A.A Acum Costo MP Utilizada]
+		lineageTag: c09a499d-8d2e-4a0d-aca2-769b67b14345
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Acum Costo MP Utilizada' = DIVIDE([Var Acum Costo MP Utilizada], [A.A Acum Costo MP Utilizada])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: b3893311-1120-4c23-9571-99e2fbc78e7a
+
+	measure 'A.A % Acum Costo MP Utilizada' = DIVIDE([A.A Acum Costo MP Utilizada], [A.A Acum Costo Prod Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 8482e5f4-bd36-45d1-80b3-4b169914b900
+
+	measure '% Acum Costo M.O.D' = DIVIDE([Acum Costo M.O.D.],[Acum Costo Produccion Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 18e0604e-4bca-495a-b5f4-1728034a0c62
+
+	measure 'A.A Acum Costo M.O.D.' = CALCULATE([Acum Costo M.O.D.], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 6ae5273c-8484-4d95-bfbb-b5aa202fd1e8
+
+	measure 'A.A M.O. Temp' = CALCULATE([Acum MO Temp], SAMEPERIODLASTYEAR(Calendario[Date]))
+		lineageTag: 96e07b66-e4d5-49f6-87a7-f15cf7ac1d77
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A MO Vinc' = CALCULATE([Acum MO Vinc], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Costo M.O.D.
+		lineageTag: 80246f79-cd10-4c77-a028-707fb8046d24
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Año Anterior' = "% AÑO ANTERIOR"
+		lineageTag: a45f13ff-4b71-4155-bdc7-f0d8f0701575
+
+	measure 'A.A % Acum Costo M.O.D.' = DIVIDE([A.A Acum Costo M.O.D.], [A.A Acum Costo Prod Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: b5193b1a-e010-43e8-98c9-5990617ff8a7
+
+	measure 'Var Acum Costo M.O.D.' = [Acum Costo M.O.D.] - [A.A Acum Costo M.O.D.]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: f4d1a254-d9a6-4c30-858d-cd817e1c173c
+
+	measure '% Var Acum Costo M.O.D' = DIVIDE([Var Acum Costo M.O.D.], [A.A Acum Costo M.O.D.])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: a5629fba-d544-4533-bf0d-0df1f6d67bc1
+
+	measure '% Acum CIF' = DIVIDE([Acum CIF],[Acum Costo Produccion Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: fc0e0cb8-71b0-4b65-8f02-22b541742123
+
+	measure 'A.A Acum CIF' = CALCULATE([Acum CIF], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 73170d3b-c9cc-4542-b21c-60b4b0119c3c
+
+	measure 'A.A % Acum CIF' = DIVIDE([A.A Acum CIF], [A.A Acum Costo Prod Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: e039f8db-0a93-41b4-8670-e85313e07637
+
+	measure 'Var Acum CIF' = [Acum CIF] - [A.A Acum CIF]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 526220d7-a425-44ac-aa77-3cfdee8462cf
+
+	measure 'Medida 4'
+		lineageTag: 7e698d5b-9057-4024-ad88-21edda9ab3e4
+
+		annotation 43dbc3e8-3a1c-4b6f-9923-b49ff7d6691c = True
+
+	measure '% Var Acum CIF' = DIVIDE([Var Acum CIF], [A.A Acum CIF])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: de54de88-a422-45e2-b7ee-789c063daffb
+
+	measure '% Var Costo Produccion Periodo' = DIVIDE([Var Acum Costo Produccion Periodo], [A.A Acum Costo Prod Periodo])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 2b680b62-a530-4f09-9d1d-ed74f947e7aa
+
+	measure 'Blanco 34' = ""
+		lineageTag: 1ac57e88-05c7-484a-ad30-068ef864f47e
+
+	measure 'Blanco 35' = ""
+		lineageTag: e88826ec-36d2-46e0-aae8-7ce1700a8974
+
+	measure 'Blanco 36' = ""
+		lineageTag: 85a3bd74-4d89-4975-943a-a5c28a896d1c
+
+	measure 'Var M.O. Indirecta' = [MO Indirecta] - [M.A MO Indirecta]
+		displayFolder: CIF
+		lineageTag: a357e4a4-e347-4b37-854a-032636cdc5e8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Honorarios' = [Honorarios] - [M.A Honorarios]
+		displayFolder: CIF
+		lineageTag: ed691e12-2ac6-4d3c-a69d-e6aa5c69a3ae
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Impuestos' = [Impuestos] - [M.A Impuestos]
+		displayFolder: CIF
+		lineageTag: 9025c99a-a239-4875-9c19-f5887afb6985
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Arrendamientos' = [Arrendamiento] - [M.A Arrendamiento]
+		displayFolder: CIF
+		lineageTag: db81b7ea-1387-4357-8a4d-33bf886f7ed4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Servicios' = [Servicios] - [M.A Servicios]
+		displayFolder: CIF
+		lineageTag: b8acf901-3dd5-4cf1-8fb0-b0f7350569e1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Mantenimiento' = [Mantenimiento] - [M.A Mantenimiento]
+		displayFolder: CIF
+		lineageTag: d5a9ef77-ddfd-494e-b624-052a9c779fac
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Gastos de Viaje' = [Gastos de viaje] - [M.A Gastos de Viaje]
+		displayFolder: CIF
+		lineageTag: 682b4d69-54da-4bed-8296-4a034c1e8012
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Depreciaciones' = [Depreciacion] - [M.A Depresiacion]
+		displayFolder: CIF
+		lineageTag: 01dd3e2f-59d3-4218-9722-fa036383ae02
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Otros CIF' = [Otros CIF] - [M.A Otros CIF]
+		displayFolder: CIF
+		lineageTag: 6be0dcc1-32c3-4ada-9e2f-a97f5cc91415
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum MO Indirecta' = CALCULATE([Acum MO Indirecta], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: 74d97b49-c9ec-4bd0-be17-e742074c4de0
+
+	measure 'A.A Acum Honorarios' = CALCULATE([Acum Honorarios], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: e0693a57-c783-49b5-8992-43b638f60b08
+
+	measure 'A.A Acum Impuesto' = CALCULATE([Acum Impuestos], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: da55632e-71e3-4787-a3d7-8b43ff3ea75f
+
+	measure 'A.A Acum Arrendamiento' = CALCULATE([Acum Arrendamientos], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: 8bd121af-5804-454d-ba46-179e171a7049
+
+	measure 'A.A Acum Servicios' = CALCULATE([Acum Servicios], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: abdd7b49-1650-4fd7-9994-0b42102c7607
+
+	measure 'A.A Acum Mantenimiento' = CALCULATE([Acum Mantenimiento], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Acum CIF
+		lineageTag: add113d1-588d-4768-98ad-4920c0d531ee
+
+	measure 'A.A Acum Gastos de Viaje' = CALCULATE([Acum Gastos de viaje], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum CIF
+		lineageTag: f94340b3-5226-49da-8743-38fa6a2e5dfe
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum Depreciaciones' = CALCULATE([Acum Depreciaciones], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum CIF
+		lineageTag: 80d7452d-86f1-47aa-8768-015bd784f1e4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum Otros CIF' = CALCULATE([Acum Otros CIF], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum CIF
+		lineageTag: 39687be8-6f21-4ac5-afb7-f0bc355c2814
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum Inv Ini Prod Proc' = CALCULATE([Inv_Inicial_Prod_Proceso], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Costo Prod Proceso
+		lineageTag: d4e9a5be-30b1-4706-823d-43fba4242174
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Acum Costo Prod Proceso' = DIVIDE([Var Acum Costo Prod Proceso], [A.A Acum Costo Prod Proceso])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 85d914fb-38ec-4093-8b65-bc59b1102c61
+
+	measure 'A.A Acum Inv_final_Prod_Proc' = CALCULATE([Acum Inv_Final_Prod_Proceso], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Costo Prod Terminado
+		lineageTag: 65fab997-7a81-4c8d-8898-acb6d8e26ce1
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure '% Var Acum Costo Prod Terminado' = DIVIDE([Var Acum Costo Prod Terminado], [A.A Acum Costo Prod Terminado])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Costo Prod Terminado
+		lineageTag: a4c24d60-43bc-4dfa-9317-0d34095f9ca6
+
+	measure 'A.A Acum Inv_Inicial_Prod_Terminado' = CALCULATE([Inv Inicial Prod Terminado], SAMEPERIODLASTYEAR(Calendario[Date]), Balance[Mes] = 1)
+		displayFolder: Acum Costo Prod Dispo Venta
+		lineageTag: f3781058-3083-44f7-9e27-150a1f2a35e4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Acum Costo Prod Disp Vent' = DIVIDE([Var Acum Costo Prod Dispo Venta], [A.A Acum Costo Prod Dispo Venta])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Costo Prod Dispo Venta
+		lineageTag: fa59ac73-31aa-4e33-be72-e0070e07d3f8
+
+	measure 'A.A Acum Retiro Muestras Venta REAL' = [A.A Acum Retiro Muestras Venta] - [A.A Acum Dif Real vs Medida]
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 9bb77d3f-1168-4b29-8628-df4f23be1f8c
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'A.A Acum Dif Real vs Medida' = [A.A Acum Costo Venta Manufacturados] - [A.A Acum TOTAL REAL]
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 0e5a9b4a-5ee2-48b6-8e3e-12b4b6aa30be
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum TOTAL REAL' = CALCULATE([Acum TOTAL REAL], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 62df2e86-35a9-4cc1-a3ef-b1ccdbc30b0f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum Traslado de Costos' = CALCULATE([Acum Traslado de Costos], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 517422e6-7d43-4c7d-b99d-3bd8865bb683
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum Inv_Final_Prod_Terminado' = CALCULATE([Acum Inv_Final_Prod_Terminado], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 65a4e05b-2f35-4d4e-8462-e9a9c057cc12
+
+		formatStringDefinition = "\$#,0.###############;-\$#,0.###############;\$#,0.###############"
+
+	measure 'A.A Acum Retiro Muestras Venta' = CALCULATE([Acum Retiro Muestras Venta], SAMEPERIODLASTYEAR(Calendario[Date]))
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 88db9616-b6d2-4b36-aebe-b9b029d447ec
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'A.A Acum Costo Venta Manufacturados' = [A.A Acum Costo Prod Dispo Venta] + [A.A Acum Retiro Muestras Venta] + [A.A Acum Traslado de Costos] + [A.A Acum Inv_Final_Prod_Terminado]
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: dfc3a5d6-bad7-4a68-8bc1-7b48050ce519
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Var Acum Costo Venta Manufacturados' = DIVIDE([Var Acum Costo Venta Manufacturados REAL], [A.A Acum Costo Venta Manufacturados REAL])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Acum Costo Venta Manufacturados
+		lineageTag: 67128522-2006-45db-85ab-87c595e50227
+
+	measure '% Costo Ventas' = DIVIDE([Total Costo Ventas], [TOTAL Ventas])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 0d8061fb-bf4a-4be6-9ddb-95032f41a7db
+
+	measure 'M.A. Total Ventas' = CALCULATE([TOTAL Ventas], PREVIOUSMONTH(Calendario[Date]))
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 5209e3dc-a885-4273-9da2-e609f7ff7e97
+
+	measure '% M.A Costo Venta Manufacturado' = DIVIDE([M.A Total Costo Venta], [M.A. Total Ventas])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 6d45f726-7bb2-41fc-b06f-5f9b78d51654
+
+	measure 'Acum Total Ventas' = ```
+			((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl2] = "41", ISBLANK(Balance[Lvl3]), Balance[Mes] = MAX(Balance[Mes])))*-1)
+			+ 
+			((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "4205", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))*-1)
+			+
+			((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "423565", ISBLANK(Balance[Account]), Balance[Mes] = MAX(Balance[Mes])))*-1)
+			+
+			((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "4275", ISBLANK(Balance[Lvl4]), Balance[Mes] = MAX(Balance[Mes])))*-1)
+			+
+			(CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42750510", Balance[Mes] = MAX(Balance[Mes])))
+			+
+			(CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "42750520", Balance[Mes] = MAX(Balance[Mes])))
+			
+			```
+		lineageTag: 2889feec-0ac0-4244-9f21-6efbdba0e361
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Acum Costo Venta Manufacturado' = DIVIDE([Acum Costo Venta Manufacturados REAL], [Acum Total Ventas])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: b5ac2dd4-049f-4fd6-94c0-80421165c6ed
+
+	measure 'A.A Acum Total Ventas' = CALCULATE([Acum Total Ventas], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 6f6c77ba-f4a1-4491-b9f8-09768c9cb0e3
+
+	measure '% A.A Acum Total Ventas' = DIVIDE([A.A Acum Costo Venta Manufacturados REAL], [A.A Acum Total Ventas])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: efdd9c2f-9bdb-4330-866b-7e438ceca347
+
+	measure 'Label Seguros' = "Seguros"
+		lineageTag: ef2164c6-83e0-4e4c-8a3b-4146c00403b1
+
+	measure Seguros = CALCULATE(MAX(Balance[Débito]), Balance[Lvl3] = "7330") - CALCULATE(MAX(Balance[Crédito]), Balance[Lvl3] = "7330")
+		lineageTag: 83767fe4-3d82-462c-b1f8-26010e919cd0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'M.A Seguros' = CALCULATE([Seguros], PREVIOUSMONTH(Calendario[Date]))
+		lineageTag: 8597d87a-9cf3-403c-a3d7-805503e20291
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Var Seguros' = [Seguros] - [M.A Seguros]
+		lineageTag: 4ccfd5d8-0529-4122-972d-e45035b3dd10
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Medidas Estado Costo-8a111bcb-bed9-4d9c-8d36-c8786c56a1da' = m
+		mode: import
+		source =
+				let
+				    Origen = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Columna1 = _t]),
+				    #"Tipo cambiado" = Table.TransformColumnTypes(Origen,{{"Columna1", type text}}),
+				    #"Columnas quitadas" = Table.RemoveColumns(#"Tipo cambiado",{"Columna1"})
+				in
+				    #"Columnas quitadas"
+
+	annotation PBI_ResultType = Table
+

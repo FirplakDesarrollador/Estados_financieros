@@ -1,0 +1,491 @@
+table 'Balance General'
+	lineageTag: bd5a684f-7df7-49ff-8cf7-0f95511d3442
+
+	measure '1105 Caja' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1105", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: 0e995223-1ac7-4b14-bb0d-e7c1b8e0f8a5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1110 Bancos' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1110", ISBLANK(Balance[Lvl4]))
+		formatString: 0
+		displayFolder: Activos
+		lineageTag: e79a81e3-05ed-4508-87a0-7373f870fe46
+
+	measure '1245 Derechos Fiduciarios' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1245", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: 41b063cc-8d4c-4c89-b1aa-dad6ebf6ed18
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1225 CDT' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1225", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: 4cb9a0a7-46ff-4c7b-b095-a33718148b13
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '11 Efectivo y Equivalentes' = [1105 Caja] + [1110 Bancos] + [1245 Derechos Fiduciarios] + [1225 CDT] + [1295 Otras inversiones virtual]
+		displayFolder: Activos
+		lineageTag: a4fc20f5-684b-4467-8f39-e59e632da76c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1305 Clientes Nacionales' = CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "13050505")
+		displayFolder: Activos
+		lineageTag: b221732e-f4f8-46b4-9303-a67eaa2bda88
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1305 Clientes del Exterior' = ```
+			CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "13051005") + CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "13051010")
+			```
+		displayFolder: Activos
+		lineageTag: 00dc07c3-7d7b-4197-9e6a-9a85d42ef3fe
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1355 Anticipos de Impuestos' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1355", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: 7df7a8d8-4b69-412f-97d8-1e6c01770ab1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1365 Cuentas por Cobrar a Trabajadores' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1365", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: d9229f37-b4a3-4086-a9c7-ab1d8ca8f484
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1380 Deudores Varios' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1380", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: f141e7b0-9e6d-4485-ab4c-4bbc0ad9ee70
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1305 Deterioro de Cartera' = ```
+			CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "13050590")
+			+ CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "13051090")
+			+ CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "13990505")
+			```
+		displayFolder: Activos
+		lineageTag: d25d4e36-c53f-4e16-b153-3c8f7a1f2aa2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '13 Activos Financieros' = [1305 Clientes Nacionales] + [1305 Clientes del Exterior] + [1355 Anticipos de Impuestos] + [1365 Cuentas por Cobrar a Trabajadores] + [1380 Deudores Varios] + [1305 Deterioro de Cartera]
+		displayFolder: Activos
+		lineageTag: c02ad9ab-061d-46cf-bf88-8224f1c8bd27
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1405 Materias Primas' = ```
+			CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1405", ISBLANK(Balance[Lvl4]))
+			- CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "14050590")
+			```
+		displayFolder: Activos
+		lineageTag: 8fa3efa1-092e-42bc-807f-70a17648fd19
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1410 Producto en Proceso' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1410", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: faacdcdf-639f-4393-81e2-16b0caee3973
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1430 Productos Terminados' = ```
+			CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1430", ISBLANK(Balance[Lvl4]))
+			- CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "14300590")
+			```
+		displayFolder: Activos
+		lineageTag: 7ce3b599-2ef1-4bb6-98f5-64a4b059f87c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1435 M/CIAS NO FABRICADAS P/EMPRESA' = ```
+			CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1435", ISBLANK(Balance[Lvl4]))
+			- CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "14350590")
+			```
+		displayFolder: Activos
+		lineageTag: a70bbb54-9aaf-49eb-805c-5c88425bf5ab
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1465 Inventarios en Transito' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1465", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: 46a5d715-f913-40cc-8164-d663eb75d5bc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '14 Deterioro de Inventarios' = ```
+			CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "14050590")
+			+ CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "14300590")
+			+ CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "14350590")
+			```
+		displayFolder: Activos
+		lineageTag: 5486c622-4ad0-4ecb-8909-46af16529b22
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '14 Inventarios' = [1405 Materias Primas] + [1410 Producto en Proceso] + [1430 Productos Terminados] + [1435 M/CIAS NO FABRICADAS P/EMPRESA] + [1465 Inventarios en Transito] + [14 Deterioro de Inventarios]
+		displayFolder: Activos
+		lineageTag: dd6effcb-3ee5-4364-8028-ec0d9a67ff53
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1705 Gastos Pagado por Anticipado' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1705", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: c82d1da2-770d-4113-9a56-bb8d7bf4555c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Activo Corriente' = [11 Efectivo y Equivalentes] + [13 Activos Financieros] + [14 Inventarios] + [1705 Gastos Pagado por Anticipado]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Activos
+		lineageTag: 98b714d4-f9b0-44a0-bf04-fa21b0ae12c6
+
+	measure '15 Propiedad, planta y equipo' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl2] = "15", ISBLANK(Balance[Lvl3]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Activos
+		lineageTag: 33d9f92e-43f3-4236-8942-5491b795dbba
+
+	measure '1330 Activos no financieros / Anticipos' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1330", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: 6338a54b-74de-490b-84df-563de3e7b452
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '16 Intangibles/Licencias' = ```
+			CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl2] = "16", ISBLANK(Balance[Lvl3]))
+			+ CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1710", ISBLANK(Balance[Lvl4]))
+			```
+		displayFolder: Activos
+		lineageTag: 2cb70895-8639-465d-9a2d-00eb952c99ef
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '1325 Cuentas por cobrar a socios' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1325", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: e1d41dfe-1cad-4dd3-a727-afa78e256cf1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Activos' = [Total Activo Corriente] + [15 Propiedad, planta y equipo] + [Otros Activos]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Activos
+		lineageTag: b6dfd9f5-b132-49c9-9a39-5c84a38c0b57
+
+	measure 'Otros Activos' = [1330 Activos no financieros / Anticipos] + [16 Intangibles/Licencias] + [1325 Cuentas por cobrar a socios]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Activos
+		lineageTag: 87284ff3-8c57-47a5-9e33-03b9f5ead4bc
+
+	measure '2105 Obligaciones Financieras' = ```
+			(CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl2] = "21", ISBLANK(Balance[Lvl3]))
+			- CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "21051020")
+			- CALCULATE(Max(Balance[Saldo Final]), Balance[Account] = "21150505"))*-1
+			```
+		displayFolder: Pasivo
+		lineageTag: a05e0cfd-2a73-406e-9e19-d8430a7f5a61
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2195 Obligaciones forward' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "2195", ISBLANK(Balance[Lvl4]))
+		displayFolder: Pasivo
+		lineageTag: 7ee30aae-b74a-4a6a-9f39-8592c9110fa9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2205 Proveedores Nacionales' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "2205", ISBLANK(Balance[Lvl4]))*-1
+		displayFolder: Pasivo
+		lineageTag: b4d7cb4c-d06e-4876-b6fb-89a4e1d2355a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2210 Proveedores del Exterior' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "2210", ISBLANK(Balance[Lvl4]))*-1
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Pasivo
+		lineageTag: f93319cc-136f-4179-9891-8b08ac397b24
+
+	measure '2335 Costos y Gastos por pagar' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "2335", ISBLANK(Balance[Lvl4])) * -1
+		displayFolder: Pasivo
+		lineageTag: 376d517c-86f1-45a7-87b8-83ec4d31883b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2355 Deuda a Socios' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "2355", ISBLANK(Balance[Lvl4]))*-1
+		displayFolder: Pasivo
+		lineageTag: f6c1a023-f4b5-442d-9db7-1419ec19d14e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2360 Dividendos' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "2360", ISBLANK(Balance[Lvl4]))*-1
+		displayFolder: Pasivo
+		lineageTag: 8536971f-8bcb-4691-bc6a-2012a982dd2c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2365 Retencion en la Fuete' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "2365", ISBLANK(Balance[Lvl4]))*-1
+		displayFolder: Pasivo
+		lineageTag: e5e53f9e-0df0-4460-8b97-c93ef70bdd47
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2367 Retencion por impuesto a las ventas' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "2367", ISBLANK(Balance[Lvl4]))*-1
+		displayFolder: Pasivo
+		lineageTag: 0fbee739-cf9c-4dbe-a641-95773e1eb429
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2368 Retencion Industria y Comercio' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "2368", ISBLANK(Balance[Lvl4]))*-1
+		displayFolder: Pasivo
+		lineageTag: af612911-34d8-442f-a583-a6e7f6e43d89
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2370-2380 Retenciones y Aportes de Nomina' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "2370", ISBLANK(Balance[Lvl4])) + CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "2380", ISBLANK(Balance[Lvl4])))*-1
+		displayFolder: Pasivo
+		lineageTag: 87f09a80-3d36-4d77-b398-d6e74e08ca80
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2408 Impuestos sobre las ventas por pagar' = CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "2408", ISBLANK(Balance[Lvl4]))*-1
+		displayFolder: Pasivo
+		lineageTag: cafec69d-8494-4840-b282-1170e6c68900
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2404 Impuesto de Renta' = IF([Selected] = 12, 0, (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl4] = "240405", ISBLANK(Balance[Account]))* -1))
+		displayFolder: Pasivo
+		lineageTag: c5f3ce5c-ef99-4aa5-9ce0-9aa4e0223b5b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '25 Obligaciones Laborales' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl2] = "25", ISBLANK(Balance[Lvl3])))*-1
+		formatString: 0
+		displayFolder: Pasivo
+		lineageTag: 4ac84c17-85b3-4f87-bdb8-8df1c1f895c3
+
+	measure '2610 Pasivos Estimados Laborales' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "2610", ISBLANK(Balance[Lvl4])))*-1
+		displayFolder: Pasivo
+		lineageTag: 500eb4b2-2dd3-41d6-8585-f7f379870572
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2605 Pasivos Estimados Diversos' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "2605", ISBLANK(Balance[Lvl4])))*-1
+		displayFolder: Pasivo
+		lineageTag: 1febdbf0-9f7c-4285-965f-8eef334dc4fb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2805 Anticipos y Avances' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "2805", ISBLANK(Balance[Lvl4])))*-1
+		displayFolder: Pasivo
+		lineageTag: 375aad32-b04b-4e45-9438-86dd082c74e7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Pasivo Corriente' = [2105 Obligaciones Financieras] + [2195 Obligaciones forward] + [2205 Proveedores Nacionales] + [2210 Proveedores del Exterior] + [2335 Costos y Gastos por pagar] + [2355 Deuda a Socios] + [2360 Dividendos] + [2365 Retencion en la Fuete] + [2367 Retencion por impuesto a las ventas] + [2368 Retencion Industria y Comercio] + [2370-2380 Retenciones y Aportes de Nomina] + [2408 Impuestos sobre las ventas por pagar] + [2404 Impuesto de Renta] + [25 Obligaciones Laborales] + [2610 Pasivos Estimados Laborales] + [2605 Pasivos Estimados Diversos] + [2805 Anticipos y Avances]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Pasivo
+		lineageTag: 102fa076-bb52-4cdc-8686-b9456b4b9497
+
+	measure '2105 Obligaciones Financieras Largo Plazo' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "21051020"))*-1
+		displayFolder: Pasivo
+		lineageTag: 7eefd043-394d-4c83-8a8a-1857898b0738
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '2115 Leasing Immobiliriario' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Account] = "21150505"))*-1
+		displayFolder: Pasivo
+		lineageTag: 563f5507-ca6c-4411-aa1f-9e20149f0f26
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '27 Pasivo por impuesto diferido' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl2] = "27", ISBLANK(Balance[Lvl3])))*-1
+		displayFolder: Pasivo
+		lineageTag: 15c3b8d1-1c75-4b5e-825e-01be826028b2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Pasivo No Corriente' = [2105 Obligaciones Financieras Largo Plazo] + [2115 Leasing Immobiliriario] + [27 Pasivo por impuesto diferido]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Pasivo
+		lineageTag: 61143304-2c59-4278-8582-51a78baaf062
+
+	measure 'Total Pasivos' = [Total Pasivo Corriente] + [Total Pasivo No Corriente]
+		displayFolder: Pasivo
+		lineageTag: 25e95ea2-7ccb-4cfc-8f60-27534955d97f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '3105 Capital Social' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "3105", ISBLANK(Balance[Lvl4])))*-1
+		lineageTag: cc15fb90-3fb7-464b-84bc-4edb95330c7c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '3305 Reservas Obligatorias' = (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl3] = "3305", ISBLANK(Balance[Lvl4])))*-1
+		lineageTag: 00314c66-581a-43d1-8512-e15376ec5f66
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '36-37 Utilidad o Perdida del Ejercicio' = [Acum Utilidad del Periodo]
+		lineageTag: 18bfbc0b-bdc5-40ad-8f8d-22bdcf46a0ee
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '3705 Utilidades Acumuladas' = ```
+			((CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl2] = "36", ISBLANK(Balance[Lvl3])))
+			                        + (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl2] = "37", ISBLANK(Balance[Lvl3])))
+			                        + (CALCULATE(MAX(Balance[Saldo Final]), Balance[Lvl2] = "39", ISBLANK(Balance[Lvl3]))))*-1
+			```
+		lineageTag: 45ef6e78-d56c-459f-9b5d-a7843067a474
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Patrimonio' = [3105 Capital Social] + [3305 Reservas Obligatorias] + [36-37 Utilidad o Perdida del Ejercicio] + [3705 Utilidades Acumuladas]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 06af9613-fc97-473a-8372-64c121799bc6
+
+	measure 'Total Pasivo + Patrimonio' = [Total Pasivos] + [Total Patrimonio]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: b80598f1-998f-4be4-b389-25e2cde8226e
+
+	measure '1295 Otras inversiones virtual' = CALCULATE(Max(Balance[Saldo Final]), Balance[Lvl3] = "1295", ISBLANK(Balance[Lvl4]))
+		displayFolder: Activos
+		lineageTag: ab5e15f8-b95f-455d-954a-2bf5af02346a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Label Activos Corrientes' = "Activos Corrientes"
+		displayFolder: Activos
+		lineageTag: 9805f624-b962-4612-98b3-2e2b09774b0f
+
+	measure 'Total Activo Corriente A.A' = CALCULATE([Total Activo Corriente], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Activos
+		lineageTag: 6737538d-efb6-4c56-8827-4b2e30ddb6cc
+
+	measure 'var Total Activo Corriente' = [Total Activo Corriente] - [Total Activo Corriente A.A]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Activos
+		lineageTag: dbb487a1-caf5-4444-a076-a4c9b7231867
+
+	measure '% var Total Activo Corriente' = DIVIDE([var Total Activo Corriente], [Total Activo Corriente A.A])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Activos
+		lineageTag: 4c329e5a-de0a-4618-a415-6ba9fd0f82c5
+
+	measure 'Label Propiedad Planta Equipo' = "Propiedad, planta y  equipo"
+		displayFolder: Activos
+		lineageTag: 026e38a1-a191-4c43-98f6-1608f4411a12
+
+	measure 'Propiedad, planta y equipo A.A' = CALCULATE([15 Propiedad, planta y equipo], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Activos
+		lineageTag: 50b0a0bc-e360-40e5-82a6-462a4e2ebf66
+
+	measure 'var Propiedad, Planta y equipo' = [Propiedad, planta y equipo A.A] - [15 Propiedad, planta y equipo]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Activos
+		lineageTag: d067aae0-370d-4787-b049-89a5024e3b0d
+
+	measure '% var Propiedad, Planta y equipo' = DIVIDE([var Propiedad, Planta y equipo], [Propiedad, planta y equipo A.A])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Activos
+		lineageTag: 73192439-99e9-44cc-bd21-ec1a815127a6
+
+	measure 'Label Otros activos' = "Otros activos"
+		displayFolder: Activos
+		lineageTag: 94a11f0f-1efc-4043-9ba4-34c2991f2ae7
+
+	measure 'Otros activos A.A' = CALCULATE([Otros Activos],SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Activos
+		lineageTag: 27a331f4-449e-4569-b3b7-db20990b45c4
+
+	measure 'var Otros activos' = [Otros activos A.A]-[Otros Activos]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Activos
+		lineageTag: 1b48caaf-86c3-4cf0-b9d5-c6c4d7adb1fd
+
+	measure '% var Otros activos' = DIVIDE([var Otros activos],[Otros activos A.A])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Activos
+		lineageTag: f7edd179-8d44-471d-a9fa-1fe97ff3453d
+
+	measure 'Label Pasivos corrientes' = "Pasivos corrientes"
+		displayFolder: Pasivo
+		lineageTag: 3d378e93-9668-43c0-8670-000e1657c0fb
+
+	measure 'Total Pasivo Corriente A.A' = CALCULATE([Total Pasivo Corriente], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Pasivo
+		lineageTag: 36f2b1a4-3787-453c-82d1-eadd5fdf8a6d
+
+	measure 'var Total Pasivo Corriente' = [Total Pasivo Corriente] - [Total Pasivo Corriente A.A]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Pasivo
+		lineageTag: 95f85d3d-43eb-4af1-831f-0b0bf17c0f18
+
+	measure '% var Total Pasivo Corriente' = DIVIDE([var Total Pasivo Corriente], [Total Pasivo Corriente A.A])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Pasivo
+		lineageTag: 28587061-70e4-4c51-b673-8954151ccf12
+
+	measure 'Label Pasivos no corrientes' = "Pasivos no corrientes"
+		displayFolder: Pasivo
+		lineageTag: 05b95dba-1c0b-4fd7-9863-5ff9a45a5c75
+
+	measure 'Total Pasivo no Corriente A.A' = CALCULATE([Total Pasivo No Corriente], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Pasivo
+		lineageTag: 81a72999-abaa-4f9f-97d9-13952cd9a96a
+
+	measure 'var Total Pasivo no Corriente' = [Total Pasivo No Corriente] - [Total Pasivo no Corriente A.A]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Pasivo
+		lineageTag: 9d0f5147-dcf4-44ef-8fa5-40257de472a0
+
+	measure '% var Total Pasivo no Corriente' = DIVIDE([var Total Pasivo no Corriente], [Total Pasivo no Corriente A.A])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Pasivo
+		lineageTag: 380d54ca-4fad-4a04-8f96-208fcb2bbc89
+
+	measure 'Label Patrimonio' = "Patrimonio"
+		displayFolder: Pasivo
+		lineageTag: 37980f7a-3c62-4b17-b0ea-27166e5451ea
+
+	measure 'Total Patrimonio A.A' = CALCULATE([Total Patrimonio], SAMEPERIODLASTYEAR(Calendario[Date]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Pasivo
+		lineageTag: e2e37474-321a-4946-919d-23fb630d8c09
+
+	measure 'var Total Patrimonio' = [Total Patrimonio] - [Total Patrimonio A.A]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Pasivo
+		lineageTag: 9ed65923-988e-4984-8b7d-20041d614ee5
+
+	measure '% var Total Patrimonio' = DIVIDE([var Total Patrimonio], [Total Patrimonio A.A])
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Pasivo
+		lineageTag: 34da1fdc-4cc3-4824-9c8a-ff6c152b6a6c
+
+	measure 'Label Pasivo + Patrimonio' = "Pasivo + Patrimonio"
+		displayFolder: Pasivo
+		lineageTag: 0a2a872e-1ac9-47bd-95c2-21e43139565c
+
+	measure 'Label Total Activos' = "Total Activos"
+		displayFolder: Activos
+		lineageTag: 867f1d36-c674-401d-bfb0-0b2d705325c9
+
+	partition 'Balance General' = m
+		mode: import
+		source =
+				let
+				    Origen = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Columna1 = _t]),
+				    #"Tipo cambiado" = Table.TransformColumnTypes(Origen,{{"Columna1", type text}}),
+				    #"Columnas quitadas" = Table.RemoveColumns(#"Tipo cambiado",{"Columna1"})
+				in
+				    #"Columnas quitadas"
+
+	annotation PBI_ResultType = Table

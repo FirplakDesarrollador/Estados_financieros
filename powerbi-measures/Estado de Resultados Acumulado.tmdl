@@ -1,0 +1,24 @@
+table 'Estado de Resultados Acumulado'
+	lineageTag: 3538800f-a3ee-4433-a707-83f6988cab9d
+
+	measure 'Acum Provision Impuesto de Renta' = ```
+			CALCULATE([Provisión Impuesto de Renta],
+			                            FILTER(ALLSELECTED(Calendario), Calendario[Date] <= MAX(Calendario[Date])))
+
+
+			```
+		lineageTag: bc3e013c-2ad8-47d9-9e4b-5895d18ff05b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Estado de Resultados Acumulado' = m
+		mode: import
+		source =
+				let
+				    Origen = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Columna1 = _t]),
+				    #"Tipo cambiado" = Table.TransformColumnTypes(Origen,{{"Columna1", type text}}),
+				    #"Columnas quitadas" = Table.RemoveColumns(#"Tipo cambiado",{"Columna1"})
+				in
+				    #"Columnas quitadas"
+
+	annotation PBI_ResultType = Table
