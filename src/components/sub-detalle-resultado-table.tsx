@@ -39,8 +39,7 @@ export function SubDetalleResultadoTable({
   const baseAnterior = ventasAnterior ?? 0;
   const showPct = baseActual !== 0 || baseAnterior !== 0;
 
-  // Oculta filas donde ambos periodos son cero
-  const visibles = filas.filter((f) => f.actual !== 0 || f.mesAnterior !== 0);
+  const visibles = filas;
 
   return (
     <div className="overflow-x-auto">

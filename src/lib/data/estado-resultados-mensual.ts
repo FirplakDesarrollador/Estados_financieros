@@ -243,6 +243,7 @@ export async function getEstadoResultadosMensual(cur: Period): Promise<EstadoRes
     costoVentas: [
       fila("Costos Productos Vendidos", actual.costosProductosVendidos, anterior.costosProductosVendidos),
       fila("Descuentos Financieros Aprovechados", actual.descuentosFinancierosAprovechados, anterior.descuentosFinancierosAprovechados),
+      fila("Total Costo de Ventas", actual.totalCostoVentas, anterior.totalCostoVentas, true),
     ],
     gastosOperativos: [
       fila("Gastos Administración", actual.gastosAdministracion, anterior.gastosAdministracion),
