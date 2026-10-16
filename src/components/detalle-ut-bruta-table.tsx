@@ -19,6 +19,11 @@ function valor(fila: FilaResultado, campo: "actual" | "mesAnterior" | "variacion
   return fila.destacado ? formatMiles(v) : formatPesos(v);
 }
 
+function pct(valor: number, base: number): string {
+  if (base === 0) return "-";
+  return formatPorcentaje(valor / base);
+}
+
 // Detalle de Ut. Bruta en Ventas: Ventas Netas | Costo de Ventas | Ut. Bruta
 export function DetalleUtBrutaTable({ data }: { data: EstadoResultadosMensual }) {
   const actualLabel = nombreMes(data.periodoActual.mes).toUpperCase();
@@ -28,6 +33,9 @@ export function DetalleUtBrutaTable({ data }: { data: EstadoResultadosMensual })
   const ventasNetas = data.filas[0];
   const costoVentas = data.filas[1];
   const utBruta = data.filas[2];
+
+  const baseActual = ventasNetas?.actual ?? 0;
+  const baseAnterior = ventasNetas?.mesAnterior ?? 0;
 
   const LINKS: Record<string, string> = {
     [ventasNetas?.label]: "ventas-netas",
@@ -61,13 +69,13 @@ export function DetalleUtBrutaTable({ data }: { data: EstadoResultadosMensual })
                   <Pill negative={fila.actual < 0}>{valor(fila, "actual")}</Pill>
                 </td>
                 <td className="py-1 pr-3">
-                  <Pill>{""}</Pill>
+                  <Pill negative={fila.actual < 0}>{pct(fila.actual, baseActual)}</Pill>
                 </td>
                 <td className="py-1 pr-3">
                   <Pill negative={fila.mesAnterior < 0}>{valor(fila, "mesAnterior")}</Pill>
                 </td>
                 <td className="py-1 pr-3">
-                  <Pill>{""}</Pill>
+                  <Pill negative={fila.mesAnterior < 0}>{pct(fila.mesAnterior, baseAnterior)}</Pill>
                 </td>
                 <td className="py-1 pr-3">
                   <Pill negative={fila.variacion < 0}>{valor(fila, "variacion")}</Pill>

@@ -62,10 +62,17 @@ const specs: RawSpec[] = [
   { key: "s_53051505", where: "account = '53051505'" },
   { key: "s_530520", where: `lvl4 = '530520' and ${BLANK("account")}` },
   { key: "s_530525", where: `lvl4 = '530525' and ${BLANK("account")}` },
-  { key: "s_530595", where: `lvl4 = '530595' and ${BLANK("account")}` },
+  // 530595 Otros Gastos Financieros — cuenta 53059515 excluida (asiento par de 53959520, se anulan)
+  { key: "s_53059505", where: "account = '53059505'" },
+  { key: "s_53059510", where: "account = '53059510'" },
   { key: "s_5310", where: `lvl3 = '5310' and ${BLANK("lvl4")}` },
   { key: "s_5315", where: `lvl3 = '5315' and ${BLANK("lvl4")}` },
-  { key: "s_5395", where: `lvl3 = '5395' and ${BLANK("lvl4")}` },
+  // 5395 Gastos Extraordinarios — cuenta 53959520 excluida (saldo crédito/reversión no capturada en BI)
+  { key: "s_53950505", where: "account = '53950505'" },
+  { key: "s_53951505", where: "account = '53951505'" },
+  { key: "s_53952005", where: "account = '53952005'" },
+  { key: "s_53952505", where: "account = '53952505'" },
+  { key: "s_53959505", where: "account = '53959505'" },
   { key: "s_5299", where: `lvl3 = '5299' and ${BLANK("lvl4")}` },
 
   // Provisión Impuesto de Renta
@@ -117,7 +124,9 @@ function computeFrom(row: Raw, suffix: "cur" | "prev") {
   // Gastos Operativos
   const contribucion4x1000 = g("s_51159510") + g("s_51159515");
   const gastosAdministracion = g("s_51") - contribucion4x1000 - g("s_5199");
-  const gastosVentas = g("s_52") - g("s_52991090");
+  const gastosVentasBruto = g("s_52");
+  const descuentosCom = -g("s_52991090");
+  const gastosVentas = gastosVentasBruto + descuentosCom;
   const gastosOperativos = gastosAdministracion + gastosVentas;
 
   const utilidadOperacional = utilidadBrutaVentas - gastosOperativos;
@@ -143,10 +152,10 @@ function computeFrom(row: Raw, suffix: "cur" | "prev") {
   const gastosComisiones = g("s_53051505");
   const gastosIntereses = g("s_530520");
   const gastosDifCambio = g("s_530525");
-  const otrosGastosFinancieros = g("s_530595");
+  const otrosGastosFinancieros = g("s_53059505") + g("s_53059510");
   const perdidaRetiroBienes = g("s_5310");
   const impuestosAsumidos = g("s_5315");
-  const gastosExtraordinarios = g("s_5395");
+  const gastosExtraordinarios = g("s_53950505") + g("s_53951505") + g("s_53952005") + g("s_53952505") + g("s_53959505");
   const provisionCartera = g("s_5199") + g("s_5299");
   const gastosNoOperativos =
     gastosBancarios + gastosComisiones + gastosIntereses + gastosDifCambio + otrosGastosFinancieros +
@@ -166,7 +175,7 @@ function computeFrom(row: Raw, suffix: "cur" | "prev") {
     // Sub-componentes Costo Ventas
     costosProductosVendidos, descuentosFinancierosAprovechados,
     // Sub-componentes Gastos Operativos
-    gastosAdministracion, gastosVentas,
+    gastosAdministracion, gastosVentasBruto, descuentosCom,
     // Sub-componentes Ingresos No Operativos
     ingrIntereses, ingrDifCambio, ingrCoberturaTC, ingrArrendamientos, ingrComisiones,
     ingrFletes, ingrUtilidadPPE, ingrRecuperaciones, ingrIndemnizaciones,
@@ -247,7 +256,9 @@ export async function getEstadoResultadosMensual(cur: Period): Promise<EstadoRes
     ],
     gastosOperativos: [
       fila("Gastos Administración", actual.gastosAdministracion, anterior.gastosAdministracion),
-      fila("Gastos de Ventas", actual.gastosVentas, anterior.gastosVentas),
+      fila("Gastos de Ventas", actual.gastosVentasBruto, anterior.gastosVentasBruto),
+      fila("Descuento com", actual.descuentosCom, anterior.descuentosCom),
+      fila("Total Gastos Operativos", actual.gastosOperativos, anterior.gastosOperativos, true),
     ],
     ingresosNoOperativos: [
       fila("Ingresos Intereses", actual.ingrIntereses, anterior.ingrIntereses),
@@ -273,6 +284,7 @@ export async function getEstadoResultadosMensual(cur: Period): Promise<EstadoRes
       fila("Impuestos Asumidos", actual.impuestosAsumidos, anterior.impuestosAsumidos),
       fila("Gastos Extraordinarios", actual.gastosExtraordinarios, anterior.gastosExtraordinarios),
       fila("Provisión Cartera e Inventarios", actual.provisionCartera, anterior.provisionCartera),
+      fila("Total Gastos No Operativos", actual.gastosNoOperativos, anterior.gastosNoOperativos, true),
     ],
   };
 

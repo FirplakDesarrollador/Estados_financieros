@@ -16,8 +16,12 @@ function Pill({ children, negative }: { children: React.ReactNode; negative?: bo
 
 function valor(fila: FilaResultado, campo: "actual" | "mesAnterior" | "variacion") {
   const v = fila[campo];
-  // Fila resumen (destacado) → miles; componentes → pesos brutos
   return fila.destacado ? formatMiles(v) : formatPesos(v);
+}
+
+function pct(valor: number, base: number): string {
+  if (base === 0) return "-";
+  return formatPorcentaje(valor / base);
 }
 
 // Detalle de Ut. Antes de Impuesto: Ut. Op | Gtos No Op | Ingr. No Op | Ut. Antes Impto
@@ -25,6 +29,10 @@ export function DetalleResultadoMensualTable({ data }: { data: EstadoResultadosM
   const actualLabel = nombreMes(data.periodoActual.mes).toUpperCase();
   const anteriorLabel = nombreMes(data.periodoAnterior.mes).toUpperCase();
   const { anio, mes } = data.periodoActual;
+
+  const ventasNetas = data.filas[0];
+  const baseActual = ventasNetas?.actual ?? 0;
+  const baseAnterior = ventasNetas?.mesAnterior ?? 0;
 
   const utOp = data.filas[4];
   const gastosNoOp = data.filas[6];
@@ -64,13 +72,13 @@ export function DetalleResultadoMensualTable({ data }: { data: EstadoResultadosM
                   <Pill negative={fila.actual < 0}>{valor(fila, "actual")}</Pill>
                 </td>
                 <td className="py-1 pr-3">
-                  <Pill>{""}</Pill>
+                  <Pill negative={fila.actual < 0}>{pct(fila.actual, baseActual)}</Pill>
                 </td>
                 <td className="py-1 pr-3">
                   <Pill negative={fila.mesAnterior < 0}>{valor(fila, "mesAnterior")}</Pill>
                 </td>
                 <td className="py-1 pr-3">
-                  <Pill>{""}</Pill>
+                  <Pill negative={fila.mesAnterior < 0}>{pct(fila.mesAnterior, baseAnterior)}</Pill>
                 </td>
                 <td className="py-1 pr-3">
                   <Pill negative={fila.variacion < 0}>{valor(fila, "variacion")}</Pill>
