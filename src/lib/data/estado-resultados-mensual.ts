@@ -1,10 +1,8 @@
 import { runManagementSql } from "@/lib/supabase/management";
 import type { Period } from "./estado-costo-mensual";
 
-// Traducción de las medidas DAX de la tabla "Medidas Resultado" del modelo de
-// Power BI, para el Estado de Resultados Mensual (comparativo contra el mes
-// anterior, igual que el Estado del Costo Mensual). Todas son lecturas directas
-// de Balance[Saldo del Mes] filtradas por Lvl2/Lvl3/Lvl4/Account.
+// Traducción de las medidas DAX (mensuales) de "Medidas Resultado" del modelo Power BI.
+// Usa Balance[Saldo del Mes] filtrado por jerarquía. Las medidas acumuladas usan Saldo Final.
 
 type RawSpec = { key: string; where: string };
 
@@ -17,7 +15,9 @@ const specs: RawSpec[] = [
   { key: "s_41209510", where: "account = '41209510'" },
   { key: "s_41359505", where: "account = '41359505'" },
   { key: "s_41209520", where: "account = '41209520'" },
+  { key: "s_41203240", where: "account = '41203240'" }, // cuenta adicional en grupo 412032
   { key: "s_41203215", where: "account = '41203215'" },
+  { key: "s_41203245", where: "account = '41203245'" }, // cuenta adicional en grupo 412032
   { key: "s_41209515", where: "account = '41209515'" },
   { key: "s_41359515", where: "account = '41359515'" },
   { key: "s_42050510", where: "account = '42050510'" },
@@ -34,7 +34,7 @@ const specs: RawSpec[] = [
 
   // Costo de Ventas
   { key: "s_61", where: `lvl2 = '61' and ${BLANK("lvl3")}` },
-  { key: "s_42104005", where: "account = '42104005'" },
+  { key: "s_42104005", where: "account = '42104005'" }, // Descuentos Financieros Aprovechados
 
   // Gastos Operativos
   { key: "s_51", where: `lvl2 = '51' and ${BLANK("lvl3")}` },
@@ -96,21 +96,25 @@ function n(v: unknown): number {
 function computeFrom(row: Raw, suffix: "cur" | "prev") {
   const g = (key: string) => n(row[`${key}_${suffix}`]);
 
-  const ventasNacionales = (g("s_41203205") + g("s_41209505") + g("s_41209510") + g("s_41359505") + g("s_41209520")) * -1;
-  const ventasExportaciones = (g("s_41203215") + g("s_41209515") + g("s_41359515") + g("s_42050510") + g("s_42050520")) * -1;
+  // Ventas Netas
+  const ventasNacionales = (g("s_41203205") + g("s_41209505") + g("s_41209510") + g("s_41359505") + g("s_41209520") + g("s_41203240")) * -1;
+  const ventasExportaciones = (g("s_41203215") + g("s_41203245") + g("s_41209515") + g("s_41359515") + g("s_42050510") + g("s_42050520")) * -1;
   const ventasServicios = g("s_42356505") * -1;
   const ventasMP = (g("s_42050505") + g("s_42050515") + g("s_42054505")) * -1;
   const devolucionesVentas = (g("s_4175") + g("s_4275") - (g("s_42750510") - g("s_42750520"))) * -1;
-  const ventasDescuentosFinancieros = g("s_53053505") * -1;
+  const descuentosFinancierosVentas = g("s_53053505") * -1;
   const totalVentasNetas =
-    ventasNacionales + ventasExportaciones + ventasServicios + ventasMP + devolucionesVentas + ventasDescuentosFinancieros;
+    ventasNacionales + ventasExportaciones + ventasServicios + ventasMP + devolucionesVentas + descuentosFinancierosVentas;
 
+  // Costo de Ventas — usa Total Costo Ventas Resultado (= Costos + Descuentos Financieros Aprovechados)
+  // 42104005 es cuenta crédito (saldo negativo) → reduce el costo neto, igual que el DAX
   const costosProductosVendidos = g("s_61");
   const descuentosFinancierosAprovechados = g("s_42104005");
   const totalCostoVentas = costosProductosVendidos + descuentosFinancierosAprovechados;
 
   const utilidadBrutaVentas = totalVentasNetas - totalCostoVentas;
 
+  // Gastos Operativos
   const contribucion4x1000 = g("s_51159510") + g("s_51159515");
   const gastosAdministracion = g("s_51") - contribucion4x1000 - g("s_5199");
   const gastosVentas = g("s_52") - g("s_52991090");
@@ -118,46 +122,59 @@ function computeFrom(row: Raw, suffix: "cur" | "prev") {
 
   const utilidadOperacional = utilidadBrutaVentas - gastosOperativos;
 
+  // Ingresos No Operativos (sub-componentes)
+  const ingrIntereses = g("s_421005") * -1;
+  const ingrDifCambio = g("s_421020") * -1;
+  const ingrCoberturaTC = g("s_421095") * -1;
+  const ingrArrendamientos = g("s_4220") * -1;
+  const ingrComisiones = g("s_4225") * -1;
+  const ingrFletes = g("s_423580") * -1 - g("s_42750510") - g("s_42750520");
+  const ingrUtilidadPPE = g("s_4245") * -1;
+  const ingrRecuperaciones = g("s_4250") * -1;
+  const ingrIndemnizaciones = g("s_4255") * -1;
+  const ingrEjerciciosAnt = g("s_4265") * -1;
+  const ingrDiversos = g("s_4295") * -1;
   const ingresosNoOperativos =
-    g("s_421005") * -1 +
-    g("s_421020") * -1 +
-    g("s_421095") * -1 +
-    g("s_4220") * -1 +
-    g("s_4225") * -1 +
-    (g("s_423580") * -1 - g("s_42750510") - g("s_42750520")) +
-    g("s_4245") * -1 +
-    g("s_4250") * -1 +
-    g("s_4255") * -1 +
-    g("s_4265") * -1 +
-    g("s_4295") * -1;
+    ingrIntereses + ingrDifCambio + ingrCoberturaTC + ingrArrendamientos + ingrComisiones +
+    ingrFletes + ingrUtilidadPPE + ingrRecuperaciones + ingrIndemnizaciones + ingrEjerciciosAnt + ingrDiversos;
 
+  // Gastos No Operativos (sub-componentes)
+  const gastosBancarios = g("s_53050505");
+  const gastosComisiones = g("s_53051505");
+  const gastosIntereses = g("s_530520");
+  const gastosDifCambio = g("s_530525");
+  const otrosGastosFinancieros = g("s_530595");
+  const perdidaRetiroBienes = g("s_5310");
+  const impuestosAsumidos = g("s_5315");
+  const gastosExtraordinarios = g("s_5395");
+  const provisionCartera = g("s_5199") + g("s_5299");
   const gastosNoOperativos =
-    g("s_53050505") +
-    g("s_53051505") +
-    g("s_530520") +
-    g("s_530525") +
-    g("s_530595") +
-    g("s_5310") +
-    contribucion4x1000 +
-    g("s_5315") +
-    g("s_5395") +
-    (g("s_5199") + g("s_5299"));
+    gastosBancarios + gastosComisiones + gastosIntereses + gastosDifCambio + otrosGastosFinancieros +
+    perdidaRetiroBienes + contribucion4x1000 + impuestosAsumidos + gastosExtraordinarios + provisionCartera;
 
   const utilidadAntesImpuestos = utilidadOperacional - gastosNoOperativos + ingresosNoOperativos;
   const provisionImpuestoRenta = g("s_54");
   const utilidadPeriodo = utilidadAntesImpuestos - provisionImpuestoRenta;
 
   return {
-    totalVentasNetas,
-    totalCostoVentas,
-    utilidadBrutaVentas,
-    gastosOperativos,
-    utilidadOperacional,
-    ingresosNoOperativos,
-    gastosNoOperativos,
-    utilidadAntesImpuestos,
-    provisionImpuestoRenta,
-    utilidadPeriodo,
+    totalVentasNetas, totalCostoVentas, utilidadBrutaVentas, gastosOperativos,
+    utilidadOperacional, ingresosNoOperativos, gastosNoOperativos, utilidadAntesImpuestos,
+    provisionImpuestoRenta, utilidadPeriodo,
+    // Sub-componentes Ventas
+    ventasNacionales, ventasExportaciones, ventasServicios, ventasMP,
+    devolucionesVentas, descuentosFinancierosVentas,
+    // Sub-componentes Costo Ventas
+    costosProductosVendidos, descuentosFinancierosAprovechados,
+    // Sub-componentes Gastos Operativos
+    gastosAdministracion, gastosVentas,
+    // Sub-componentes Ingresos No Operativos
+    ingrIntereses, ingrDifCambio, ingrCoberturaTC, ingrArrendamientos, ingrComisiones,
+    ingrFletes, ingrUtilidadPPE, ingrRecuperaciones, ingrIndemnizaciones,
+    ingrEjerciciosAnt, ingrDiversos,
+    // Sub-componentes Gastos No Operativos
+    gastosBancarios, gastosComisiones, gastosIntereses, gastosDifCambio,
+    otrosGastosFinancieros, perdidaRetiroBienes, contribucion4x1000,
+    impuestosAsumidos, gastosExtraordinarios, provisionCartera,
   };
 }
 
@@ -174,6 +191,13 @@ export type EstadoResultadosMensual = {
   periodoActual: Period;
   periodoAnterior: Period;
   filas: FilaResultado[];
+  detalles: {
+    ventasNetas: FilaResultado[];
+    costoVentas: FilaResultado[];
+    gastosOperativos: FilaResultado[];
+    ingresosNoOperativos: FilaResultado[];
+    gastosNoOperativos: FilaResultado[];
+  };
 };
 
 function divide(a: number, b: number): number | null {
@@ -206,5 +230,50 @@ export async function getEstadoResultadosMensual(cur: Period): Promise<EstadoRes
     fila("Utilidad del Periodo", actual.utilidadPeriodo, anterior.utilidadPeriodo, true),
   ];
 
-  return { periodoActual: cur, periodoAnterior: prev, filas };
+  const detalles = {
+    ventasNetas: [
+      fila("Ventas Nacionales", actual.ventasNacionales, anterior.ventasNacionales),
+      fila("Ventas Exportaciones", actual.ventasExportaciones, anterior.ventasExportaciones),
+      fila("Ventas Servicios", actual.ventasServicios, anterior.ventasServicios),
+      fila("Ventas Materia Prima", actual.ventasMP, anterior.ventasMP),
+      fila("Devoluciones en Ventas", actual.devolucionesVentas, anterior.devolucionesVentas),
+      fila("Descuentos Financieros", actual.descuentosFinancierosVentas, anterior.descuentosFinancierosVentas),
+      fila("Total Ventas Netas", actual.totalVentasNetas, anterior.totalVentasNetas, true),
+    ],
+    costoVentas: [
+      fila("Costos Productos Vendidos", actual.costosProductosVendidos, anterior.costosProductosVendidos),
+      fila("Descuentos Financieros Aprovechados", actual.descuentosFinancierosAprovechados, anterior.descuentosFinancierosAprovechados),
+    ],
+    gastosOperativos: [
+      fila("Gastos Administración", actual.gastosAdministracion, anterior.gastosAdministracion),
+      fila("Gastos de Ventas", actual.gastosVentas, anterior.gastosVentas),
+    ],
+    ingresosNoOperativos: [
+      fila("Ingresos Intereses", actual.ingrIntereses, anterior.ingrIntereses),
+      fila("Diferencia en Cambio", actual.ingrDifCambio, anterior.ingrDifCambio),
+      fila("Cobertura TC", actual.ingrCoberturaTC, anterior.ingrCoberturaTC),
+      fila("Arrendamientos", actual.ingrArrendamientos, anterior.ingrArrendamientos),
+      fila("Comisiones", actual.ingrComisiones, anterior.ingrComisiones),
+      fila("Ingresos Fletes", actual.ingrFletes, anterior.ingrFletes),
+      fila("Utilidad PPE", actual.ingrUtilidadPPE, anterior.ingrUtilidadPPE),
+      fila("Recuperaciones", actual.ingrRecuperaciones, anterior.ingrRecuperaciones),
+      fila("Indemnizaciones", actual.ingrIndemnizaciones, anterior.ingrIndemnizaciones),
+      fila("Ingresos Ejercicios Anteriores", actual.ingrEjerciciosAnt, anterior.ingrEjerciciosAnt),
+      fila("Ingresos Diversos", actual.ingrDiversos, anterior.ingrDiversos),
+    ],
+    gastosNoOperativos: [
+      fila("Gastos Bancarios", actual.gastosBancarios, anterior.gastosBancarios),
+      fila("Comisiones", actual.gastosComisiones, anterior.gastosComisiones),
+      fila("Intereses", actual.gastosIntereses, anterior.gastosIntereses),
+      fila("Diferencia en Cambio", actual.gastosDifCambio, anterior.gastosDifCambio),
+      fila("Otros Gastos Financieros", actual.otrosGastosFinancieros, anterior.otrosGastosFinancieros),
+      fila("Pérdida en Retiro de Bienes", actual.perdidaRetiroBienes, anterior.perdidaRetiroBienes),
+      fila("Contribución 4x1000", actual.contribucion4x1000, anterior.contribucion4x1000),
+      fila("Impuestos Asumidos", actual.impuestosAsumidos, anterior.impuestosAsumidos),
+      fila("Gastos Extraordinarios", actual.gastosExtraordinarios, anterior.gastosExtraordinarios),
+      fila("Provisión Cartera e Inventarios", actual.provisionCartera, anterior.provisionCartera),
+    ],
+  };
+
+  return { periodoActual: cur, periodoAnterior: prev, filas, detalles };
 }

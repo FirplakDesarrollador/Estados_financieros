@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Period } from "@/lib/data/estado-costo-mensual";
 import { MainNav } from "./main-nav";
 import { PeriodoSelector } from "./periodo-selector";
@@ -9,6 +10,7 @@ export function PageShell({
   subtitulo,
   periodos,
   actual,
+  backHref,
   children,
 }: {
   current: string;
@@ -16,6 +18,7 @@ export function PageShell({
   subtitulo?: string;
   periodos: Period[];
   actual: Period;
+  backHref?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -32,6 +35,14 @@ export function PageShell({
       <MainNav current={current} />
 
       <main className="mx-auto max-w-6xl px-8 py-10">
+        {backHref && (
+          <Link
+            href={backHref}
+            className="mb-6 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800"
+          >
+            ← Volver
+          </Link>
+        )}
         <div className="mb-8 flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900">{titulo}</h2>

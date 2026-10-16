@@ -1,3 +1,9 @@
+export function formatPesos(value: number): string {
+  const abs = Math.round(Math.abs(value)).toLocaleString("es-CO");
+  const text = `$${abs}`;
+  return value < 0 ? `(${text})` : text;
+}
+
 export function formatMiles(value: number): string {
   const scaled = Math.round(value / 1000);
   const formatted = Math.abs(scaled).toLocaleString("es-CO");
