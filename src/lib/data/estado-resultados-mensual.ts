@@ -143,6 +143,7 @@ function computeFrom(row: Raw, suffix: "cur" | "prev") {
   const ingrIndemnizaciones = g("s_4255") * -1;
   const ingrEjerciciosAnt = g("s_4265") * -1;
   const ingrDiversos = g("s_4295") * -1;
+  const diverBenefPAEF = ingrEjerciciosAnt + ingrDiversos;
   const ingresosNoOperativos =
     ingrIntereses + ingrDifCambio + ingrCoberturaTC + ingrArrendamientos + ingrComisiones +
     ingrFletes + ingrUtilidadPPE + ingrRecuperaciones + ingrIndemnizaciones + ingrEjerciciosAnt + ingrDiversos;
@@ -179,7 +180,7 @@ function computeFrom(row: Raw, suffix: "cur" | "prev") {
     // Sub-componentes Ingresos No Operativos
     ingrIntereses, ingrDifCambio, ingrCoberturaTC, ingrArrendamientos, ingrComisiones,
     ingrFletes, ingrUtilidadPPE, ingrRecuperaciones, ingrIndemnizaciones,
-    ingrEjerciciosAnt, ingrDiversos,
+    ingrEjerciciosAnt, ingrDiversos, diverBenefPAEF,
     // Sub-componentes Gastos No Operativos
     gastosBancarios, gastosComisiones, gastosIntereses, gastosDifCambio,
     otrosGastosFinancieros, perdidaRetiroBienes, contribucion4x1000,
@@ -270,8 +271,8 @@ export async function getEstadoResultadosMensual(cur: Period): Promise<EstadoRes
       fila("Utilidad PPE", actual.ingrUtilidadPPE, anterior.ingrUtilidadPPE),
       fila("Recuperaciones", actual.ingrRecuperaciones, anterior.ingrRecuperaciones),
       fila("Indemnizaciones", actual.ingrIndemnizaciones, anterior.ingrIndemnizaciones),
-      fila("Ingresos Ejercicios Anteriores", actual.ingrEjerciciosAnt, anterior.ingrEjerciciosAnt),
-      fila("Ingresos Diversos", actual.ingrDiversos, anterior.ingrDiversos),
+      fila("Diver - Benef PAEF", actual.diverBenefPAEF, anterior.diverBenefPAEF),
+      fila("Total Ingresos No Operativos", actual.ingresosNoOperativos, anterior.ingresosNoOperativos, true),
     ],
     gastosNoOperativos: [
       fila("Gastos Bancarios", actual.gastosBancarios, anterior.gastosBancarios),
