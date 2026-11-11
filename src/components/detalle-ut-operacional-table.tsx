@@ -1,6 +1,6 @@
 ﻿import Link from "next/link";
 import type { EstadoResultadosMensual, FilaResultado } from "@/lib/data/estado-resultados-mensual";
-import { formatMiles, formatPesos, formatPorcentaje, nombreMes } from "@/lib/format";
+import { formatMiles, formatPorcentaje, nombreMes } from "@/lib/format";
 
 function Pill({ children, negative }: { children: React.ReactNode; negative?: boolean }) {
   return (
@@ -15,8 +15,7 @@ function Pill({ children, negative }: { children: React.ReactNode; negative?: bo
 }
 
 function valor(fila: FilaResultado, campo: "actual" | "mesAnterior" | "variacion") {
-  const v = fila[campo];
-  return fila.destacado ? formatMiles(v) : formatPesos(v);
+  return formatMiles(fila[campo]);
 }
 
 function pct(valor: number, base: number): string {
