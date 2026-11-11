@@ -1,5 +1,5 @@
 import type { FilaResultado } from "@/lib/data/estado-resultados-mensual";
-import { formatMiles, formatPorcentaje, nombreMes } from "@/lib/format";
+import { formatMiles, formatPesos, formatPorcentaje, nombreMes } from "@/lib/format";
 import type { Period } from "@/lib/data/estado-costo-mensual";
 
 function Pill({ children, negative }: { children: React.ReactNode; negative?: boolean }) {
@@ -60,7 +60,7 @@ export function SubDetalleResultadoTable({
             <tr key={fila.label} className={fila.destacado ? "font-semibold" : ""}>
               <td className="py-1 pr-3 text-sm text-slate-700">{fila.label}</td>
               <td className="py-1 pr-3">
-                <Pill negative={fila.actual < 0}>{formatMiles(fila.actual)}</Pill>
+                <Pill negative={fila.actual < 0}>{fila.destacado ? formatMiles(fila.actual) : formatPesos(fila.actual)}</Pill>
               </td>
               {showPct && (
                 <td className="py-1 pr-3">
@@ -68,7 +68,7 @@ export function SubDetalleResultadoTable({
                 </td>
               )}
               <td className="py-1 pr-3">
-                <Pill negative={fila.mesAnterior < 0}>{formatMiles(fila.mesAnterior)}</Pill>
+                <Pill negative={fila.mesAnterior < 0}>{fila.destacado ? formatMiles(fila.mesAnterior) : formatPesos(fila.mesAnterior)}</Pill>
               </td>
               {showPct && (
                 <td className="py-1 pr-3">
@@ -76,7 +76,7 @@ export function SubDetalleResultadoTable({
                 </td>
               )}
               <td className="py-1 pr-3">
-                <Pill negative={fila.variacion < 0}>{formatMiles(fila.variacion)}</Pill>
+                <Pill negative={fila.variacion < 0}>{fila.destacado ? formatMiles(fila.variacion) : formatPesos(fila.variacion)}</Pill>
               </td>
               <td className="py-1 pr-3">
                 {fila.porcentajeVariacion !== null && (
