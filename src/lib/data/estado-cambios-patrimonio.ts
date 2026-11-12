@@ -21,8 +21,7 @@ function buildEquitySql(anio: number): string {
       MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl3='3105' AND ${BLANK("lvl4")})  AS s_3105,
       MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl2='32'  AND ${BLANK("lvl3")})  AS s_32,
       MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl3='3305' AND ${BLANK("lvl4")}) AS s_3305,
-      MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl2='36'  AND ${BLANK("lvl3")})  AS s_36,
-      MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl2='37'  AND ${BLANK("lvl3")})  AS s_37,
+      MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl3='3705' AND ${BLANK("lvl4")}) AS s_3705,
       MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl2='39'  AND ${BLANK("lvl3")})  AS s_39
     FROM "estados financieros".balance;
   `;
@@ -85,8 +84,9 @@ export async function getEstadoCambiosPatrimonio(cur: Period): Promise<EstadoCam
   const capitalSocial_open   = g("s_3105") * -1;
   const superavit_open       = g("s_32")   * -1;
   const reservas_open        = g("s_3305") * -1;
-  const ejAnt_open           = (g("s_36") + g("s_37")) * -1;
   const utRet_open           = g("s_39")   * -1;
+  // Resultados ejercicios anteriores = 3705 total − utilidades retenidas apertura
+  const ejAnt_open           = g("s_3705") * -1 - utRet_open;
 
   // 2. YTD net income from P&L acumulado
   const pnl = await getEstadoResultadosAcumulado(cur);
