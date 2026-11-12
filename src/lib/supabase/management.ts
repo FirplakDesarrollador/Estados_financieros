@@ -9,20 +9,35 @@ export async function runManagementSql<T = Record<string, unknown>>(query: strin
     throw new Error("Faltan SUPABASE_PROJECT_REF o SUPABASE_ACCESS_TOKEN en el entorno");
   }
 
-  const res = await fetch(`https://api.supabase.com/v1/projects/${ref}/database/query`, {
+  const url = `https://api.supabase.com/v1/projects/${ref}/database/query`;
+  const init = {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ query }),
-    cache: "no-store",
-  });
+    cache: "no-store" as RequestCache,
+  };
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Supabase Management API error ${res.status}: ${text}`);
+  // Retry with exponential backoff on 429 (rate limit)
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const res = await fetch(url, init);
+
+    if (res.status === 429) {
+      const retryAfter = Number(res.headers.get("Retry-After") ?? 0);
+      const delay = retryAfter > 0 ? retryAfter * 1000 : 1000 * 2 ** attempt;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      continue;
+    }
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Supabase Management API error ${res.status}: ${text}`);
+    }
+
+    return res.json();
   }
 
-  return res.json();
+  throw new Error("Supabase Management API: demasiadas solicitudes (429) después de 5 reintentos");
 }
