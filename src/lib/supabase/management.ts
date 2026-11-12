@@ -1,8 +1,14 @@
+// Module-level query cache: same SQL within the TTL window returns cached data instantly.
+const _sqlCache = new Map<string, { data: unknown[]; expiry: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 // TEMPORAL: ejecuta SQL contra el proyecto de Supabase via la Management API,
 // mientras el schema "estados financieros" no está expuesto en PostgREST
 // (Project Settings > API > Exposed schemas). Una vez expuesto, reemplazar
 // por consultas normales con supabase-js + SUPABASE_SERVICE_ROLE_KEY.
 export async function runManagementSql<T = Record<string, unknown>>(query: string): Promise<T[]> {
+  const hit = _sqlCache.get(query);
+  if (hit && Date.now() < hit.expiry) return hit.data as T[];
   const ref = process.env.SUPABASE_PROJECT_REF;
   const token = process.env.SUPABASE_ACCESS_TOKEN;
   if (!ref || !token) {
@@ -36,7 +42,9 @@ export async function runManagementSql<T = Record<string, unknown>>(query: strin
       throw new Error(`Supabase Management API error ${res.status}: ${text}`);
     }
 
-    return res.json();
+    const data: T[] = await res.json();
+    _sqlCache.set(query, { data: data as unknown[], expiry: Date.now() + CACHE_TTL });
+    return data;
   }
 
   throw new Error("Supabase Management API: demasiadas solicitudes (429) después de 5 reintentos");

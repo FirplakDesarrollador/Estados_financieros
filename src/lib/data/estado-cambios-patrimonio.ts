@@ -75,9 +75,12 @@ function fila(label: string, valores: ComponentePatrimonio, destacado?: boolean)
 export async function getEstadoCambiosPatrimonio(cur: Period): Promise<EstadoCambiosPatrimonio> {
   const apertura: Period = { anio: cur.anio - 1, mes: 12 };
 
-  // 1. Equity accounts at Dec 31, prior year (opening balance)
+  // Run equity opening balances and P&L in parallel — they are independent queries
   const sql = buildEquitySql(apertura.anio);
-  const [row] = await runManagementSql<Raw>(sql);
+  const [[row], pnl] = await Promise.all([
+    runManagementSql<Raw>(sql),
+    getEstadoResultadosAcumulado(cur),
+  ]);
 
   const g = (key: string) => n(row[key]);
 
@@ -90,9 +93,6 @@ export async function getEstadoCambiosPatrimonio(cur: Period): Promise<EstadoCam
   // account 36050590 (which has two values in DB). ejAnt = s_3705 − utRet = 36 + 37.
   const s36                  = g("s_36_min") - g("s_36_max");
   const ejAnt_open           = (s36 + g("s_37")) * -1;
-
-  // 2. YTD net income from P&L acumulado
-  const pnl = await getEstadoResultadosAcumulado(cur);
   const utilidadPeriodo = pnl.filas.find((f) => f.label === "Utilidad del Periodo")?.actual ?? 0;
 
   // 3. Build rows

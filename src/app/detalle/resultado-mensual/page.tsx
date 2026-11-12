@@ -10,15 +10,18 @@ export default async function DetalleResultadoMensualPage({
   searchParams: Promise<{ anio?: string; mes?: string }>;
 }) {
   const params = await searchParams;
-  const periodos = await getPeriodosDisponibles();
-  const latest = periodos[0] ?? { anio: new Date().getFullYear(), mes: new Date().getMonth() + 1 };
+  const now = new Date();
+  const paramsActual = params.anio && params.mes
+    ? { anio: Number(params.anio), mes: Number(params.mes) }
+    : null;
 
-  const actual = {
-    anio: params.anio ? Number(params.anio) : latest.anio,
-    mes: params.mes ? Number(params.mes) : latest.mes,
-  };
+  const periodosPromise = getPeriodosDisponibles();
+  const dataPromise = paramsActual
+    ? getEstadoResultadosMensual(paramsActual)
+    : periodosPromise.then((p) => getEstadoResultadosMensual(p[0] ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 }));
 
-  const data = await getEstadoResultadosMensual(actual);
+  const [, data] = await Promise.all([periodosPromise, dataPromise]);
+  const actual = paramsActual ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 };
   const { periodoActual, periodoAnterior } = data;
 
   return (
