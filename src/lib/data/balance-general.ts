@@ -219,11 +219,7 @@ export async function getBalanceGeneral(cur: Period): Promise<BalanceGeneral> {
   const anterior = computeFrom(row, "prev", prevYear.mes);
 
   const activos: FilaBalance[] = [
-    fila("Efectivo y Equivalentes", actual.efectivo, anterior.efectivo),
-    fila("Activos Financieros", actual.activosFinancieros, anterior.activosFinancieros),
-    fila("Inventarios", actual.inventarios, anterior.inventarios),
-    fila("Gastos Pagados por Anticipado", actual.gastosPagadosAnticipado, anterior.gastosPagadosAnticipado),
-    fila("Total Activo Corriente", actual.totalActivoCorriente, anterior.totalActivoCorriente, true),
+    fila("Activos Corrientes", actual.totalActivoCorriente, anterior.totalActivoCorriente),
     fila("Propiedad, Planta y Equipo", actual.ppe, anterior.ppe),
     fila("Otros Activos", actual.otrosActivos, anterior.otrosActivos),
     fila("Total Activos", actual.totalActivos, anterior.totalActivos, true),
