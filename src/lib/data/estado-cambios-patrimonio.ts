@@ -14,15 +14,15 @@ import { getEstadoResultadosAcumulado } from "./estado-resultados-acumulado";
 
 const BLANK = (col: string) => `(${col} IS NULL OR ${col} = '')`;
 
-function buildEquitySql(anio: number): string {
-  const mes = 12;
+function buildEquitySql(aperturaAnio: number): string {
   return `
     SELECT
-      MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl3='3105' AND ${BLANK("lvl4")})  AS s_3105,
-      MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl2='32'  AND ${BLANK("lvl3")})  AS s_32,
-      MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl3='3305' AND ${BLANK("lvl4")}) AS s_3305,
-      MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl3='3705' AND ${BLANK("lvl4")}) AS s_3705,
-      MAX(saldo_final) FILTER (WHERE anio=${anio} AND mes=${mes} AND lvl2='39'  AND ${BLANK("lvl3")})  AS s_39
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3105' AND ${BLANK("lvl4")})  AS s_3105,
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='32'  AND ${BLANK("lvl3")})  AS s_32,
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3305' AND ${BLANK("lvl4")}) AS s_3305,
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='36'  AND ${BLANK("lvl3")})  AS s_36,
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3705' AND ${BLANK("lvl4")}) AS s_37,
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='39'  AND ${BLANK("lvl3")})  AS s_39
     FROM "estados financieros".balance;
   `;
 }
@@ -85,8 +85,8 @@ export async function getEstadoCambiosPatrimonio(cur: Period): Promise<EstadoCam
   const superavit_open       = g("s_32")   * -1;
   const reservas_open        = g("s_3305") * -1;
   const utRet_open           = g("s_39")   * -1;
-  // Resultados ejercicios anteriores = 3705 total − utilidades retenidas apertura
-  const ejAnt_open           = g("s_3705") * -1 - utRet_open;
+  // s_3705 total = 36 + 37 + 39; ejAnt = s_3705 − utRet = (36 + 37 + 39) − 39 = 36 + 37
+  const ejAnt_open           = (g("s_36") + g("s_37")) * -1;
 
   // 2. YTD net income from P&L acumulado
   const pnl = await getEstadoResultadosAcumulado(cur);
