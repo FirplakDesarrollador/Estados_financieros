@@ -226,15 +226,10 @@ export async function getBalanceGeneral(cur: Period): Promise<BalanceGeneral> {
   ];
 
   const pasivosPatrimonio: FilaBalance[] = [
-    fila("Total Pasivo Corriente", actual.totalPasivoCorriente, anterior.totalPasivoCorriente, true),
-    fila("Total Pasivo No Corriente", actual.totalPasivoNoCorriente, anterior.totalPasivoNoCorriente, true),
-    fila("Total Pasivos", actual.totalPasivos, anterior.totalPasivos, true),
-    fila("Capital Social", actual.capitalSocial, anterior.capitalSocial),
-    fila("Reservas Obligatorias", actual.reservasObligatorias, anterior.reservasObligatorias),
-    fila("Utilidad del Ejercicio", actual.utilidadEjercicio, anterior.utilidadEjercicio),
-    fila("Utilidades Acumuladas", actual.utilidadesAcumuladas, anterior.utilidadesAcumuladas),
-    fila("Total Patrimonio", actual.totalPatrimonio, anterior.totalPatrimonio, true),
-    fila("Total Pasivo + Patrimonio", actual.totalPasivos + actual.totalPatrimonio, anterior.totalPasivos + anterior.totalPatrimonio, true),
+    fila("Pasivos Corrientes", actual.totalPasivoCorriente, anterior.totalPasivoCorriente),
+    fila("Pasivos No Corrientes", actual.totalPasivoNoCorriente, anterior.totalPasivoNoCorriente),
+    fila("Patrimonio", actual.totalPatrimonio, anterior.totalPatrimonio),
+    fila("Pasivo + Patrimonio", actual.totalPasivos + actual.totalPatrimonio, anterior.totalPasivos + anterior.totalPatrimonio, true),
   ];
 
   return { periodoActual: cur, periodoAnterior: prevYear, activos, pasivosPatrimonio };
