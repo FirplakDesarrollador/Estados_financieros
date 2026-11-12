@@ -7,14 +7,15 @@ const SECCIONES = [
   { href: "/balance-pasivos", label: "Balance General Pasivos y Patrimonio", ready: true },
 ];
 
-export function MainNav({ current }: { current: string }) {
+export function MainNav({ current, anio, mes }: { current: string; anio?: number; mes?: number }) {
+  const qs = anio && mes ? `?anio=${anio}&mes=${mes}` : "";
   return (
     <nav className="flex flex-wrap gap-1 border-b border-slate-200 bg-white px-8">
       {SECCIONES.map((s) =>
         s.ready ? (
           <a
             key={s.href}
-            href={s.href}
+            href={`${s.href}${qs}`}
             className={`border-b-2 px-3 py-3 text-sm font-medium ${
               current === s.href
                 ? "border-slate-900 text-slate-900"

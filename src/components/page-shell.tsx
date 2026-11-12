@@ -32,7 +32,7 @@ export function PageShell({
         </form>
       </header>
 
-      <MainNav current={current} />
+      <MainNav current={current} anio={actual.anio} mes={actual.mes} />
 
       <main className="mx-auto max-w-6xl px-8 py-10">
         {backHref && (
