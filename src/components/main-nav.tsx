@@ -5,6 +5,7 @@ const SECCIONES = [
   { href: "/resultados-acumulado", label: "Estado de Resultados Acumulado", ready: true },
   { href: "/balance-activos", label: "Balance General Activos", ready: true },
   { href: "/balance-pasivos", label: "Balance General Pasivos y Patrimonio", ready: true },
+  { href: "/cambios-patrimonio", label: "Estado de Cambios en el Patrimonio", ready: true },
 ];
 
 export function MainNav({ current, anio, mes }: { current: string; anio?: number; mes?: number }) {
