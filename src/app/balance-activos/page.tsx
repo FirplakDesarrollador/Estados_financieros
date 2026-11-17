@@ -2,6 +2,7 @@ import { getBalanceGeneral } from "@/lib/data/balance-general";
 import { getPeriodosDisponibles } from "@/lib/data/estado-costo-mensual";
 import { BalanceGeneralTable } from "@/components/balance-general-table";
 import { PageShell } from "@/components/page-shell";
+import { ComparativoBarChart } from "@/components/charts/comparativo-bar-chart";
 
 export default async function BalanceActivosPage({
   searchParams,
@@ -22,6 +23,10 @@ export default async function BalanceActivosPage({
   const [periodos, data] = await Promise.all([periodosPromise, dataPromise]);
   const actual = paramsActual ?? periodos[0] ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 };
 
+  const activosChartData = data.activos
+    .filter((f) => !f.destacado)
+    .map((f) => ({ name: f.label, actual: f.actual, anterior: f.anterior }));
+
   return (
     <PageShell
       current="/balance-activos"
@@ -30,6 +35,18 @@ export default async function BalanceActivosPage({
       periodos={periodos}
       actual={actual}
     >
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">
+          Composición de Activos — {actual.anio} vs {data.periodoAnterior.anio}
+        </p>
+        <ComparativoBarChart
+          data={activosChartData}
+          labelActual={`${actual.anio}`}
+          labelAnterior={`${data.periodoAnterior.anio}`}
+          layout="vertical"
+          height={200}
+        />
+      </div>
       <BalanceGeneralTable
         title="Activos"
         filas={data.activos}

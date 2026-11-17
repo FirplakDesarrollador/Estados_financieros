@@ -2,6 +2,7 @@ import { getEstadoResultadosAcumulado } from "@/lib/data/estado-resultados-acumu
 import { getPeriodosDisponibles } from "@/lib/data/estado-costo-mensual";
 import { EstadoResultadoAcumuladoTable } from "@/components/estado-resultado-acumulado-table";
 import { PageShell } from "@/components/page-shell";
+import { ComparativoBarChart } from "@/components/charts/comparativo-bar-chart";
 
 export default async function ResultadosAcumuladoPage({
   searchParams,
@@ -22,6 +23,18 @@ export default async function ResultadosAcumuladoPage({
   const [periodos, data] = await Promise.all([periodosPromise, dataPromise]);
   const actual = paramsActual ?? periodos[0] ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 };
 
+  const RESULT_LABELS = ["Ventas Netas", "Costo de Ventas", "Utilidad Bruta en Ventas", "Utilidad Operacional", "Utilidad del Periodo"];
+  const resultChartData = data.filas
+    .filter((f) => RESULT_LABELS.includes(f.label))
+    .map((f) => ({
+      name: f.label
+        .replace("Utilidad Bruta en Ventas", "Ut. Bruta")
+        .replace("Utilidad Operacional", "Ut. Operacional")
+        .replace("Utilidad del Periodo", "Ut. Periodo"),
+      actual: f.actual,
+      anterior: f.mesAnterior,
+    }));
+
   return (
     <PageShell
       current="/resultados-acumulado"
@@ -30,6 +43,16 @@ export default async function ResultadosAcumuladoPage({
       periodos={periodos}
       actual={actual}
     >
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">
+          Acumulado {actual.anio} vs {data.periodoAnterior.anio}
+        </p>
+        <ComparativoBarChart
+          data={resultChartData}
+          labelActual={`Acum. ${actual.anio}`}
+          labelAnterior={`Acum. ${data.periodoAnterior.anio}`}
+        />
+      </div>
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <EstadoResultadoAcumuladoTable data={data} />
       </div>
