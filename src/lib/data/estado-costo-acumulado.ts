@@ -44,6 +44,7 @@ const balanceSpecs: BalanceSpec[] = [
   { key: "sf_7315", mode: "exact", agg: "MAX", where: "lvl3 = '7315'" },
   { key: "sf_7320", mode: "exact", agg: "MAX", where: "lvl3 = '7320'" },
   { key: "sf_7335", mode: "exact", agg: "MAX", where: "lvl3 = '7335'" },
+  { key: "sf_7330", mode: "exact", agg: "MAX", where: "lvl3 = '7330'" },
   { key: "sf_7345", mode: "exact", agg: "MAX", where: "lvl3 = '7345'" },
   { key: "sf_7350", mode: "exact", agg: "MAX", where: "lvl3 = '7350'" },
   { key: "sf_7360", mode: "exact", agg: "MAX", where: "lvl3 = '7360'" },
@@ -139,6 +140,7 @@ function computeAtomics(row: Raw, suffix: "cur" | "prev") {
   const honorarios = g("sf_7310");
   const impuestos = g("sf_7315");
   const arrendamiento = g("sf_7320");
+  const seguros = g("sf_7330");
   const servicios = g("sf_7335");
   const mantenimiento = g("sf_7345");
   const adecuacion = g("sf_7350");
@@ -147,7 +149,7 @@ function computeAtomics(row: Raw, suffix: "cur" | "prev") {
     g("sf_7395_blank") - g("sf_73959585") - g("sf_73959595b") - g("sf_73959580") - g("sf_73959540") - g("sf_73959545");
   const gastosViaje = g("sf_7355");
   const cif =
-    moIndirecta + honorarios + impuestos + arrendamiento + servicios + mantenimiento + adecuacion + depreciacion + otrosCif + gastosViaje;
+    moIndirecta + honorarios + impuestos + arrendamiento + seguros + servicios + mantenimiento + adecuacion + depreciacion + otrosCif + gastosViaje;
 
   const costoProduccionPeriodo = costoMpUtilizada + costoMod + cif;
 
@@ -198,6 +200,7 @@ function computeAtomics(row: Raw, suffix: "cur" | "prev") {
       { label: "Honorarios", valor: honorarios },
       { label: "Impuestos", valor: impuestos },
       { label: "Arrendamiento", valor: arrendamiento },
+      { label: "Seguros", valor: seguros },
       { label: "Servicios", valor: servicios },
       { label: "Mantenimiento", valor: mantenimiento },
       { label: "Adecuación", valor: adecuacion },
