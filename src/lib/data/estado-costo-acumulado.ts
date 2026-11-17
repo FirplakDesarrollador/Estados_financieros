@@ -168,9 +168,7 @@ function computeAtomics(row: Raw, suffix: "cur" | "prev") {
   const costoVentaManufacturados = totalReal;
   const retiroMuestraVentaReal = totalReal - trasladoDeCostos - invFinalProdTerminado - costoProdDispoVenta;
 
-  const costosProductosVendidos = g("sf_61_lvl3_blank");
-  const descuentosFinancierosAprovechados = g("sf_42104005");
-  const totalCostoVentas = costosProductosVendidos + descuentosFinancierosAprovechados;
+  const totalCostoVentas = costoVentaManufacturados;
 
   const totalVentas =
     g("sf_41_blank") * -1 + g("sf_4205_blank") * -1 + g("sf_423565_blank") * -1 + g("sf_4275_blank") * -1 + g("sf_42750510") + g("sf_42750520");
@@ -227,8 +225,7 @@ function computeAtomics(row: Raw, suffix: "cur" | "prev") {
       { label: "Costo Prod. Disponible para Venta", valor: costoProdDispoVenta },
     ],
     "total-costo-ventas": [
-      { label: "Costos Productos Vendidos (cuenta 61)", valor: costosProductosVendidos },
-      { label: "Descuentos Financieros Aprovechados", valor: descuentosFinancierosAprovechados },
+      { label: "Costo Venta Manufacturados (cuenta 61)", valor: costoVentaManufacturados },
     ],
   };
 
