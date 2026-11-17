@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Period } from "@/lib/data/estado-costo-mensual";
 import { MainNav } from "./main-nav";
 import { PeriodoSelector } from "./periodo-selector";
+import { ExportButton } from "./export-button";
 import { signOut } from "@/app/actions";
 
 export function PageShell({
@@ -43,12 +44,15 @@ export function PageShell({
             ← Volver
           </Link>
         )}
-        <div className="mb-8 flex items-start justify-between">
+        <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900">{titulo}</h2>
             {subtitulo && <p className="text-sm text-slate-500">{subtitulo}</p>}
           </div>
-          <PeriodoSelector periodos={periodos} actual={actual} />
+          <div className="flex items-center gap-3 shrink-0">
+            <ExportButton anio={actual.anio} mes={actual.mes} />
+            <PeriodoSelector periodos={periodos} actual={actual} />
+          </div>
         </div>
 
         {children}
