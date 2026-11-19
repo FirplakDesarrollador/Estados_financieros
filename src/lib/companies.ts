@@ -17,7 +17,7 @@ export type SingleEmpresaId = (typeof EMPRESA_SINGLE_IDS)[number];
 
 export const EMPRESAS: Empresa[] = [
   { id: "firplak",      nombre: "Firplak S.A.S.",   nombreCorto: "Firplak" },
-  { id: "empresa2",     nombre: "Empresa 2",          nombreCorto: "Emp. 2" }, // actualizar nombre cuando lleguen los datos
+  { id: "empresa2",     nombre: "Viventta",             nombreCorto: "Viventta" },
   { id: "consolidado",  nombre: "Consolidado",         nombreCorto: "Consol." },
 ];
 
