@@ -1,4 +1,5 @@
 import { getEstadoCostoMensual, getPeriodosDisponibles } from "@/lib/data/estado-costo-mensual";
+import { DEFAULT_EMPRESA } from "@/lib/companies";
 import { EstadoCostoMensualTable } from "@/components/estado-costo-mensual-table";
 import { PageShell } from "@/components/page-shell";
 import { ComparativoBarChart } from "@/components/charts/comparativo-bar-chart";
@@ -7,18 +8,19 @@ import { nombreMes } from "@/lib/format";
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ anio?: string; mes?: string }>;
+  searchParams: Promise<{ anio?: string; mes?: string; empresa?: string }>;
 }) {
   const params = await searchParams;
   const now = new Date();
+  const empresa = params.empresa ?? DEFAULT_EMPRESA;
   const paramsActual = params.anio && params.mes
     ? { anio: Number(params.anio), mes: Number(params.mes) }
     : null;
 
-  const periodosPromise = getPeriodosDisponibles();
+  const periodosPromise = getPeriodosDisponibles(empresa);
   const dataPromise = paramsActual
-    ? getEstadoCostoMensual(paramsActual)
-    : periodosPromise.then((p) => getEstadoCostoMensual(p[0] ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 }));
+    ? getEstadoCostoMensual(paramsActual, empresa)
+    : periodosPromise.then((p) => getEstadoCostoMensual(p[0] ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 }, empresa));
 
   const [periodos, data] = await Promise.all([periodosPromise, dataPromise]);
   const actual = paramsActual ?? periodos[0] ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 };
@@ -35,6 +37,7 @@ export default async function Home({
       subtitulo="Comparativo"
       periodos={periodos}
       actual={actual}
+      empresa={empresa}
     >
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">

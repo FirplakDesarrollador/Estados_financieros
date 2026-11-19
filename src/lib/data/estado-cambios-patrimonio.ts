@@ -1,6 +1,7 @@
 import { runManagementSql } from "@/lib/supabase/management";
 import type { Period } from "./estado-costo-mensual";
 import { getEstadoResultadosAcumulado } from "./estado-resultados-acumulado";
+import { getEmpresaWhere, EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
 
 // Estado de Cambios en el Patrimonio
 // Columnas: Capital Social | Superávit Capital | Reservas | Resultados Ejercicio |
@@ -14,16 +15,17 @@ import { getEstadoResultadosAcumulado } from "./estado-resultados-acumulado";
 
 const BLANK = (col: string) => `(${col} IS NULL OR ${col} = '')`;
 
-function buildEquitySql(aperturaAnio: number): string {
+function buildEquitySql(aperturaAnio: number, empresa: string): string {
+  const ef = getEmpresaWhere(empresa);
   return `
     SELECT
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3105' AND ${BLANK("lvl4")})  AS s_3105,
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='32'  AND ${BLANK("lvl3")})  AS s_32,
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3305' AND ${BLANK("lvl4")}) AS s_3305,
-      MIN(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='36'  AND ${BLANK("lvl3")})  AS s_36_min,
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='36'  AND ${BLANK("lvl3")})  AS s_36_max,
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3705' AND ${BLANK("lvl4")}) AS s_37,
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='39'  AND ${BLANK("lvl3")})  AS s_39
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3105' AND ${BLANK("lvl4")}${ef})  AS s_3105,
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='32'  AND ${BLANK("lvl3")}${ef})  AS s_32,
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3305' AND ${BLANK("lvl4")}${ef}) AS s_3305,
+      MIN(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='36'  AND ${BLANK("lvl3")}${ef})  AS s_36_min,
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='36'  AND ${BLANK("lvl3")}${ef})  AS s_36_max,
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3705' AND ${BLANK("lvl4")}${ef}) AS s_37,
+      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='39'  AND ${BLANK("lvl3")}${ef})  AS s_39
     FROM "estados financieros".balance;
   `;
 }
@@ -72,14 +74,36 @@ function fila(label: string, valores: ComponentePatrimonio, destacado?: boolean)
   return { label, valores, destacado };
 }
 
-export async function getEstadoCambiosPatrimonio(cur: Period): Promise<EstadoCambiosPatrimonio> {
+function mergePatrimonio(a: EstadoCambiosPatrimonio, b: EstadoCambiosPatrimonio): EstadoCambiosPatrimonio {
+  const sumComp = (va: ComponentePatrimonio, vb: ComponentePatrimonio): ComponentePatrimonio => ({
+    capitalSocial: va.capitalSocial + vb.capitalSocial,
+    superavitCapital: va.superavitCapital + vb.superavitCapital,
+    reservas: va.reservas + vb.reservas,
+    resultadosEjercicio: va.resultadosEjercicio + vb.resultadosEjercicio,
+    resultadosEjAnteriores: va.resultadosEjAnteriores + vb.resultadosEjAnteriores,
+    utilidadesRetenidas: va.utilidadesRetenidas + vb.utilidadesRetenidas,
+    total: va.total + vb.total,
+  });
+  return {
+    periodo: a.periodo,
+    apertura: a.apertura,
+    filas: a.filas.map((fa, i) => ({ ...fa, valores: sumComp(fa.valores, b.filas[i].valores) })),
+  };
+}
+
+export async function getEstadoCambiosPatrimonio(cur: Period, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<EstadoCambiosPatrimonio> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getEstadoCambiosPatrimonio(cur, id)));
+    return results.reduce(mergePatrimonio);
+  }
+
   const apertura: Period = { anio: cur.anio - 1, mes: 12 };
 
   // Run equity opening balances and P&L in parallel — they are independent queries
-  const sql = buildEquitySql(apertura.anio);
+  const sql = buildEquitySql(apertura.anio, empresa);
   const [[row], pnl] = await Promise.all([
     runManagementSql<Raw>(sql),
-    getEstadoResultadosAcumulado(cur),
+    getEstadoResultadosAcumulado(cur, empresa),
   ]);
 
   const g = (key: string) => n(row[key]);

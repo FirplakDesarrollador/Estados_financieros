@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 
-type Props = { anio: number; mes: number };
+type Props = { anio: number; mes: number; empresa?: string };
 
-export function ExportButton({ anio, mes }: Props) {
+export function ExportButton({ anio, mes, empresa = "firplak" }: Props) {
   const [loading, setLoading] = useState(false);
 
   async function handleDownload() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/export?anio=${anio}&mes=${mes}`);
+      const res = await fetch(`/api/export?anio=${anio}&mes=${mes}&empresa=${empresa}`);
       if (!res.ok) throw new Error("Error al generar el archivo");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);

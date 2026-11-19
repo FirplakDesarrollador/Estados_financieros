@@ -1,5 +1,6 @@
 import { getEstadoCostoAcumulado } from "@/lib/data/estado-costo-acumulado";
 import { getPeriodosDisponibles } from "@/lib/data/estado-costo-mensual";
+import { DEFAULT_EMPRESA } from "@/lib/companies";
 import { EstadoCostoAcumuladoTable } from "@/components/estado-costo-acumulado-table";
 import { PageShell } from "@/components/page-shell";
 import { ComparativoBarChart } from "@/components/charts/comparativo-bar-chart";
@@ -7,18 +8,19 @@ import { ComparativoBarChart } from "@/components/charts/comparativo-bar-chart";
 export default async function CostoAcumuladoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ anio?: string; mes?: string }>;
+  searchParams: Promise<{ anio?: string; mes?: string; empresa?: string }>;
 }) {
   const params = await searchParams;
   const now = new Date();
+  const empresa = params.empresa ?? DEFAULT_EMPRESA;
   const paramsActual = params.anio && params.mes
     ? { anio: Number(params.anio), mes: Number(params.mes) }
     : null;
 
-  const periodosPromise = getPeriodosDisponibles();
+  const periodosPromise = getPeriodosDisponibles(empresa);
   const dataPromise = paramsActual
-    ? getEstadoCostoAcumulado(paramsActual)
-    : periodosPromise.then((p) => getEstadoCostoAcumulado(p[0] ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 }));
+    ? getEstadoCostoAcumulado(paramsActual, empresa)
+    : periodosPromise.then((p) => getEstadoCostoAcumulado(p[0] ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 }, empresa));
 
   const [periodos, data] = await Promise.all([periodosPromise, dataPromise]);
   const actual = paramsActual ?? periodos[0] ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 };
@@ -35,6 +37,7 @@ export default async function CostoAcumuladoPage({
       subtitulo={`Comparativo contra el mismo periodo de ${data.periodoAnterior.anio}`}
       periodos={periodos}
       actual={actual}
+      empresa={empresa}
     >
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">

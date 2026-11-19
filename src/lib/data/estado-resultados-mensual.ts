@@ -1,5 +1,6 @@
 import { runManagementSql } from "@/lib/supabase/management";
 import type { Period } from "./estado-costo-mensual";
+import { getEmpresaWhere, EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
 
 // Traducción de las medidas DAX (mensuales) de "Medidas Resultado" del modelo Power BI.
 // Usa Balance[Saldo del Mes] filtrado por jerarquía. Las medidas acumuladas usan Saldo Final.
@@ -83,12 +84,13 @@ function prevMonth({ anio, mes }: Period): Period {
   return mes === 1 ? { anio: anio - 1, mes: 12 } : { anio, mes: mes - 1 };
 }
 
-function buildSql(cur: Period, prev: Period): string {
+function buildSql(cur: Period, prev: Period, empresa: string): string {
+  const ef = getEmpresaWhere(empresa);
   const cols = specs
     .map(
       (s) =>
-        `MAX(saldo_del_mes) FILTER (WHERE anio = ${cur.anio} AND mes = ${cur.mes} AND ${s.where}) AS ${s.key}_cur,\n` +
-        `MAX(saldo_del_mes) FILTER (WHERE anio = ${prev.anio} AND mes = ${prev.mes} AND ${s.where}) AS ${s.key}_prev`,
+        `MAX(saldo_del_mes) FILTER (WHERE anio = ${cur.anio} AND mes = ${cur.mes} AND ${s.where}${ef}) AS ${s.key}_cur,\n` +
+        `MAX(saldo_del_mes) FILTER (WHERE anio = ${prev.anio} AND mes = ${prev.mes} AND ${s.where}${ef}) AS ${s.key}_prev`,
     )
     .join(",\n");
   return `SELECT\n${cols}\nFROM "estados financieros".balance;`;
@@ -219,9 +221,36 @@ function fila(label: string, actual: number, mesAnterior: number, destacado?: bo
   return { label, actual, mesAnterior, variacion, porcentajeVariacion: divide(variacion, mesAnterior), destacado };
 }
 
-export async function getEstadoResultadosMensual(cur: Period): Promise<EstadoResultadosMensual> {
+function mergeResultadosMensual(a: EstadoResultadosMensual, b: EstadoResultadosMensual): EstadoResultadosMensual {
+  const mergeFilas = (fa: FilaResultado[], fb: FilaResultado[]) =>
+    fa.map((f, i) => {
+      const g = fb[i];
+      const actual = f.actual + g.actual;
+      const mesAnterior = f.mesAnterior + g.mesAnterior;
+      const variacion = actual - mesAnterior;
+      return { ...f, actual, mesAnterior, variacion, porcentajeVariacion: mesAnterior !== 0 ? variacion / mesAnterior : null };
+    });
+  return {
+    periodoActual: a.periodoActual,
+    periodoAnterior: a.periodoAnterior,
+    filas: mergeFilas(a.filas, b.filas),
+    detalles: {
+      ventasNetas: mergeFilas(a.detalles.ventasNetas, b.detalles.ventasNetas),
+      costoVentas: mergeFilas(a.detalles.costoVentas, b.detalles.costoVentas),
+      gastosOperativos: mergeFilas(a.detalles.gastosOperativos, b.detalles.gastosOperativos),
+      ingresosNoOperativos: mergeFilas(a.detalles.ingresosNoOperativos, b.detalles.ingresosNoOperativos),
+      gastosNoOperativos: mergeFilas(a.detalles.gastosNoOperativos, b.detalles.gastosNoOperativos),
+    },
+  };
+}
+
+export async function getEstadoResultadosMensual(cur: Period, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<EstadoResultadosMensual> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getEstadoResultadosMensual(cur, id)));
+    return results.reduce(mergeResultadosMensual);
+  }
   const prev = prevMonth(cur);
-  const sql = buildSql(cur, prev);
+  const sql = buildSql(cur, prev, empresa);
   const [row] = await runManagementSql<Raw>(sql);
 
   const actual = computeFrom(row, "cur");

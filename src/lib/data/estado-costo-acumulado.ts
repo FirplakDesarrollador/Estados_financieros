@@ -1,5 +1,6 @@
 import { runManagementSql } from "@/lib/supabase/management";
 import type { Period } from "./estado-costo-mensual";
+import { getEmpresaWhere, EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
 
 // Traducción de las medidas "Acum ..." de la tabla "Medidas Estado Costo" del
 // modelo de Power BI, para el Estado del Costo Acumulado. A diferencia del
@@ -81,14 +82,16 @@ const cuentasYtdSpecs = [
   { key: "compras_comerc", where: "cuenta_contable in ('14350505','14350510')" },
 ];
 
-function buildSql(cur: Period, prevYear: Period): string {
+function buildSql(cur: Period, prevYear: Period, empresa: string): string {
+  const ef = getEmpresaWhere(empresa);
+
   const balCols = balanceSpecs
     .map((s) => {
       const mesExpr = (p: Period) => (s.mode === "jan" ? 1 : p.mes);
       const column = s.mode === "jan" ? "saldo_inicial" : "saldo_final";
       return (
-        `${s.agg}(${column}) FILTER (WHERE anio = ${cur.anio} AND mes = ${mesExpr(cur)} AND ${s.where}) AS ${s.key}_cur,\n` +
-        `${s.agg}(${column}) FILTER (WHERE anio = ${prevYear.anio} AND mes = ${mesExpr(prevYear)} AND ${s.where}) AS ${s.key}_prev`
+        `${s.agg}(${column}) FILTER (WHERE anio = ${cur.anio} AND mes = ${mesExpr(cur)} AND ${s.where}${ef}) AS ${s.key}_cur,\n` +
+        `${s.agg}(${column}) FILTER (WHERE anio = ${prevYear.anio} AND mes = ${mesExpr(prevYear)} AND ${s.where}${ef}) AS ${s.key}_prev`
       );
     })
     .join(",\n");
@@ -96,8 +99,8 @@ function buildSql(cur: Period, prevYear: Period): string {
   const ctaCols = cuentasYtdSpecs
     .map(
       (s) =>
-        `SUM(saldo_mensual) FILTER (WHERE anio = ${cur.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) BETWEEN 1 AND ${cur.mes} AND ${s.where}) AS ${s.key}_cur,\n` +
-        `SUM(saldo_mensual) FILTER (WHERE anio = ${prevYear.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) BETWEEN 1 AND ${prevYear.mes} AND ${s.where}) AS ${s.key}_prev`,
+        `SUM(saldo_mensual) FILTER (WHERE anio = ${cur.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) BETWEEN 1 AND ${cur.mes} AND ${s.where}${ef}) AS ${s.key}_cur,\n` +
+        `SUM(saldo_mensual) FILTER (WHERE anio = ${prevYear.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) BETWEEN 1 AND ${prevYear.mes} AND ${s.where}${ef}) AS ${s.key}_prev`,
     )
     .join(",\n");
 
@@ -263,9 +266,27 @@ function divide(a: number, b: number): number | null {
   return b === 0 ? null : a / b;
 }
 
-export async function getEstadoCostoAcumulado(cur: Period): Promise<EstadoCostoAcumulado> {
+function mergeCostoAcumulado(a: EstadoCostoAcumulado, b: EstadoCostoAcumulado): EstadoCostoAcumulado {
+  return {
+    periodoActual: a.periodoActual,
+    periodoAnterior: a.periodoAnterior,
+    filas: a.filas.map((fa, i) => {
+      const fb = b.filas[i];
+      const actual = fa.actual + fb.actual;
+      const anioAnterior = fa.anioAnterior + fb.anioAnterior;
+      const variacion = actual - anioAnterior;
+      return { ...fa, actual, anioAnterior, variacion, porcentaje: null, porcentajeAnioAnterior: null, porcentajeVariacion: anioAnterior !== 0 ? variacion / anioAnterior : null };
+    }),
+  };
+}
+
+export async function getEstadoCostoAcumulado(cur: Period, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<EstadoCostoAcumulado> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getEstadoCostoAcumulado(cur, id)));
+    return results.reduce(mergeCostoAcumulado);
+  }
   const prevYear: Period = { anio: cur.anio - 1, mes: cur.mes };
-  const sql = buildSql(cur, prevYear);
+  const sql = buildSql(cur, prevYear, empresa);
   const [row] = await runManagementSql<Raw>(sql);
 
   const actual = computeAtomics(row, "cur");
@@ -323,9 +344,27 @@ export type DetalleRubroAcumulado = {
   componentes: Array<{ label: string; actual: number; anioAnterior: number; variacion: number }>;
 };
 
-export async function getDetalleCostoAcumulado(cur: Period, rubro: string): Promise<DetalleRubroAcumulado> {
+function mergeDetalleRubroAcumulado(a: DetalleRubroAcumulado, b: DetalleRubroAcumulado): DetalleRubroAcumulado {
+  return {
+    ...a,
+    totalActual: a.totalActual + b.totalActual,
+    totalAnterior: a.totalAnterior + b.totalAnterior,
+    componentes: a.componentes.map((ca, i) => {
+      const cb = b.componentes[i];
+      const actual = ca.actual + (cb?.actual ?? 0);
+      const anioAnterior = ca.anioAnterior + (cb?.anioAnterior ?? 0);
+      return { label: ca.label, actual, anioAnterior, variacion: actual - anioAnterior };
+    }),
+  };
+}
+
+export async function getDetalleCostoAcumulado(cur: Period, rubro: string, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<DetalleRubroAcumulado> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getDetalleCostoAcumulado(cur, rubro, id)));
+    return results.reduce(mergeDetalleRubroAcumulado);
+  }
   const prevYear: Period = { anio: cur.anio - 1, mes: cur.mes };
-  const sql = buildSql(cur, prevYear);
+  const sql = buildSql(cur, prevYear, empresa);
   const [row] = await runManagementSql<Raw>(sql);
 
   const actual = computeAtomics(row, "cur");

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { getEstadoCostoMensual, getDetalleCostoMensual } from "@/lib/data/estado-costo-mensual";
+import { DEFAULT_EMPRESA } from "@/lib/companies";
 import { getEstadoCostoAcumulado, getDetalleCostoAcumulado } from "@/lib/data/estado-costo-acumulado";
 import { getEstadoResultadosMensual } from "@/lib/data/estado-resultados-mensual";
 import { getEstadoResultadosAcumulado } from "@/lib/data/estado-resultados-acumulado";
@@ -340,22 +341,23 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const anio = Number(searchParams.get("anio") ?? new Date().getFullYear());
   const mes = Number(searchParams.get("mes") ?? new Date().getMonth() + 1);
+  const empresa = searchParams.get("empresa") ?? DEFAULT_EMPRESA;
   const cur: Period = { anio, mes };
 
   // Fetch all data in parallel (detail calls are cache hits after main calls resolve)
   const [costoMen, costoAcum, resultMen, resultAcum, balance, patrimonio] = await Promise.all([
-    getEstadoCostoMensual(cur),
-    getEstadoCostoAcumulado(cur),
-    getEstadoResultadosMensual(cur),
-    getEstadoResultadosAcumulado(cur),
-    getBalanceGeneral(cur),
-    getEstadoCambiosPatrimonio(cur),
+    getEstadoCostoMensual(cur, empresa),
+    getEstadoCostoAcumulado(cur, empresa),
+    getEstadoResultadosMensual(cur, empresa),
+    getEstadoResultadosAcumulado(cur, empresa),
+    getBalanceGeneral(cur, empresa),
+    getEstadoCambiosPatrimonio(cur, empresa),
   ]);
 
   // Fetch detail rubros (cache hits — same SQL already ran above)
   const [detMenArr, detAcumArr] = await Promise.all([
-    Promise.all(RUBROS_MENSUAL.map((r) => getDetalleCostoMensual(cur, r))),
-    Promise.all(RUBROS_ACUMUL.map((r) => getDetalleCostoAcumulado(cur, r))),
+    Promise.all(RUBROS_MENSUAL.map((r) => getDetalleCostoMensual(cur, r, empresa))),
+    Promise.all(RUBROS_ACUMUL.map((r) => getDetalleCostoAcumulado(cur, r, empresa))),
   ]);
 
   const detMen = Object.fromEntries(RUBROS_MENSUAL.map((r, i) => [r, detMenArr[i]]));

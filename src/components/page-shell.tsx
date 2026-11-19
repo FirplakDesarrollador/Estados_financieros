@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { Period } from "@/lib/data/estado-costo-mensual";
+import { DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
 import { MainNav } from "./main-nav";
 import { PeriodoSelector } from "./periodo-selector";
+import { EmpresaSelector } from "./empresa-selector";
 import { ExportButton } from "./export-button";
 import { signOut } from "@/app/actions";
 
@@ -11,6 +13,7 @@ export function PageShell({
   subtitulo,
   periodos,
   actual,
+  empresa,
   backHref,
   children,
 }: {
@@ -19,6 +22,7 @@ export function PageShell({
   subtitulo?: string;
   periodos: Period[];
   actual: Period;
+  empresa?: EmpresaId;
   backHref?: string;
   children: React.ReactNode;
 }) {
@@ -50,7 +54,8 @@ export function PageShell({
             {subtitulo && <p className="text-sm text-slate-500">{subtitulo}</p>}
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <ExportButton anio={actual.anio} mes={actual.mes} />
+            <EmpresaSelector actual={empresa ?? DEFAULT_EMPRESA} />
+            <ExportButton anio={actual.anio} mes={actual.mes} empresa={empresa ?? DEFAULT_EMPRESA} />
             <PeriodoSelector periodos={periodos} actual={actual} />
           </div>
         </div>

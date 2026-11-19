@@ -1,5 +1,6 @@
 import { runManagementSql } from "@/lib/supabase/management";
 import type { Period } from "./estado-costo-mensual";
+import { getEmpresaWhere, EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
 
 // Traducción de las medidas DAX de la tabla "Balance General" del modelo de Power BI
 // (ver /powerbi-measures/Balance General.tmdl). Todas son lecturas directas de
@@ -76,12 +77,13 @@ const specs: RawSpec[] = [
   { key: "s_39", where: `lvl2 = '39' and ${BLANK("lvl3")}` },
 ];
 
-function buildSql(cur: Period, prevYear: Period): string {
+function buildSql(cur: Period, prevYear: Period, empresa: string): string {
+  const ef = getEmpresaWhere(empresa);
   const cols = specs
     .map(
       (s) =>
-        `MAX(saldo_final) FILTER (WHERE anio = ${cur.anio} AND mes = ${cur.mes} AND ${s.where}) AS ${s.key}_cur,\n` +
-        `MAX(saldo_final) FILTER (WHERE anio = ${prevYear.anio} AND mes = ${prevYear.mes} AND ${s.where}) AS ${s.key}_prev`,
+        `MAX(saldo_final) FILTER (WHERE anio = ${cur.anio} AND mes = ${cur.mes} AND ${s.where}${ef}) AS ${s.key}_cur,\n` +
+        `MAX(saldo_final) FILTER (WHERE anio = ${prevYear.anio} AND mes = ${prevYear.mes} AND ${s.where}${ef}) AS ${s.key}_prev`,
     )
     .join(",\n");
   return `SELECT\n${cols}\nFROM "estados financieros".balance;`;
@@ -210,9 +212,30 @@ function fila(label: string, actual: number, anterior: number, destacado?: boole
   return { label, actual, anterior, variacion, porcentajeVariacion: divide(variacion, anterior), destacado };
 }
 
-export async function getBalanceGeneral(cur: Period): Promise<BalanceGeneral> {
+function mergeBalance(a: BalanceGeneral, b: BalanceGeneral): BalanceGeneral {
+  const mergeFilas = (fa: FilaBalance[], fb: FilaBalance[]) =>
+    fa.map((f, i) => {
+      const g = fb[i];
+      const actual = f.actual + g.actual;
+      const anterior = f.anterior + g.anterior;
+      const variacion = actual - anterior;
+      return { ...f, actual, anterior, variacion, porcentajeVariacion: anterior !== 0 ? variacion / anterior : null };
+    });
+  return {
+    periodoActual: a.periodoActual,
+    periodoAnterior: a.periodoAnterior,
+    activos: mergeFilas(a.activos, b.activos),
+    pasivosPatrimonio: mergeFilas(a.pasivosPatrimonio, b.pasivosPatrimonio),
+  };
+}
+
+export async function getBalanceGeneral(cur: Period, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<BalanceGeneral> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getBalanceGeneral(cur, id)));
+    return results.reduce(mergeBalance);
+  }
   const prevYear: Period = { anio: cur.anio - 1, mes: cur.mes };
-  const sql = buildSql(cur, prevYear);
+  const sql = buildSql(cur, prevYear, empresa);
   const [row] = await runManagementSql<Raw>(sql);
 
   const actual = computeFrom(row, "cur", cur.mes);

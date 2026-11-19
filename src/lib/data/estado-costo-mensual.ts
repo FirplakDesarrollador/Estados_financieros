@@ -1,4 +1,5 @@
 import { runManagementSql } from "@/lib/supabase/management";
+import { getEmpresaWhere, EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
 
 // Traducción directa de las medidas DAX de la tabla "Medidas Estado Costo" del
 // modelo de Power BI (ver /powerbi-measures/Medidas Estado Costo.tmdl) a SQL.
@@ -113,20 +114,22 @@ function effectiveAgg(s: RawSpec): "MAX" | "SUM" {
   return s.agg;
 }
 
-function buildSql(cur: Period, prev: Period): string {
+function buildSql(cur: Period, prev: Period, empresa: string): string {
+  const ef = getEmpresaWhere(empresa);
+
   const balCols = balanceSpecs
     .map(
       (s) =>
-        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${cur.anio} AND mes = ${cur.mes} AND ${s.where}) AS ${s.key}_cur,\n` +
-        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${prev.anio} AND mes = ${prev.mes} AND ${s.where}) AS ${s.key}_prev`,
+        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${cur.anio} AND mes = ${cur.mes} AND ${s.where}${ef}) AS ${s.key}_cur,\n` +
+        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${prev.anio} AND mes = ${prev.mes} AND ${s.where}${ef}) AS ${s.key}_prev`,
     )
     .join(",\n");
 
   const ctaCols = cuentasSpecs
     .map(
       (s) =>
-        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${cur.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) = ${cur.mes} AND ${s.where}) AS ${s.key}_cur,\n` +
-        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${prev.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) = ${prev.mes} AND ${s.where}) AS ${s.key}_prev`,
+        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${cur.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) = ${cur.mes} AND ${s.where}${ef}) AS ${s.key}_cur,\n` +
+        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${prev.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) = ${prev.mes} AND ${s.where}${ef}) AS ${s.key}_prev`,
     )
     .join(",\n");
 
@@ -308,16 +311,35 @@ function divide(a: number, b: number): number | null {
   return b === 0 ? null : a / b;
 }
 
-export async function getPeriodosDisponibles(): Promise<Period[]> {
+export async function getPeriodosDisponibles(empresa: EmpresaId = DEFAULT_EMPRESA): Promise<Period[]> {
+  const ef = isConsolidado(empresa) ? "" : getEmpresaWhere(empresa);
   const rows = await runManagementSql<{ anio: number; mes: number }>(
-    `SELECT DISTINCT anio, mes FROM "estados financieros".balance WHERE anio IS NOT NULL AND mes IS NOT NULL ORDER BY anio DESC, mes DESC;`,
+    `SELECT DISTINCT anio, mes FROM "estados financieros".balance WHERE anio IS NOT NULL AND mes IS NOT NULL${ef} ORDER BY anio DESC, mes DESC;`,
   );
   return rows.map((r) => ({ anio: Number(r.anio), mes: Number(r.mes) }));
 }
 
-export async function getEstadoCostoMensual(cur: Period): Promise<EstadoCostoMensual> {
+function mergeCostoMensual(a: EstadoCostoMensual, b: EstadoCostoMensual): EstadoCostoMensual {
+  return {
+    periodoActual: a.periodoActual,
+    periodoAnterior: a.periodoAnterior,
+    filas: a.filas.map((fa, i) => {
+      const fb = b.filas[i];
+      const actual = fa.actual + fb.actual;
+      const mesAnterior = fa.mesAnterior + fb.mesAnterior;
+      const variacion = actual - mesAnterior;
+      return { ...fa, actual, mesAnterior, variacion, porcentaje: null, porcentajeMesAnterior: null, porcentajeVariacion: mesAnterior !== 0 ? variacion / mesAnterior : null };
+    }),
+  };
+}
+
+export async function getEstadoCostoMensual(cur: Period, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<EstadoCostoMensual> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getEstadoCostoMensual(cur, id)));
+    return results.reduce(mergeCostoMensual);
+  }
   const prev = prevMonth(cur);
-  const sql = buildSql(cur, prev);
+  const sql = buildSql(cur, prev, empresa);
   const [row] = await runManagementSql<Raw>(sql);
 
   const actual = computeAtomics(row, "cur");
@@ -387,9 +409,27 @@ export type DetalleRubro = {
   componentes: Array<{ label: string; actual: number; mesAnterior: number; variacion: number }>;
 };
 
-export async function getDetalleCostoMensual(cur: Period, rubro: string): Promise<DetalleRubro> {
+function mergeDetalleRubro(a: DetalleRubro, b: DetalleRubro): DetalleRubro {
+  return {
+    ...a,
+    totalActual: a.totalActual + b.totalActual,
+    totalAnterior: a.totalAnterior + b.totalAnterior,
+    componentes: a.componentes.map((ca, i) => {
+      const cb = b.componentes[i];
+      const actual = ca.actual + (cb?.actual ?? 0);
+      const mesAnterior = ca.mesAnterior + (cb?.mesAnterior ?? 0);
+      return { label: ca.label, actual, mesAnterior, variacion: actual - mesAnterior };
+    }),
+  };
+}
+
+export async function getDetalleCostoMensual(cur: Period, rubro: string, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<DetalleRubro> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getDetalleCostoMensual(cur, rubro, id)));
+    return results.reduce(mergeDetalleRubro);
+  }
   const prev = prevMonth(cur);
-  const sql = buildSql(cur, prev);
+  const sql = buildSql(cur, prev, empresa);
   const [row] = await runManagementSql<Raw>(sql);
 
   const actual = computeAtomics(row, "cur");
