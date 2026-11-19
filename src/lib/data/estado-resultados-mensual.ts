@@ -1,6 +1,6 @@
-import { runManagementSql } from "@/lib/supabase/management";
 import type { Period } from "./estado-costo-mensual";
-import { getEmpresaWhere, EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
+import { EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
+import { balanceDelMes, valorBalance } from "./fuente";
 
 // Traducción de las medidas DAX (mensuales) de "Medidas Resultado" del modelo Power BI.
 // Usa Balance[Saldo del Mes] filtrado por jerarquía. Las medidas acumuladas usan Saldo Final.
@@ -84,19 +84,18 @@ function prevMonth({ anio, mes }: Period): Period {
   return mes === 1 ? { anio: anio - 1, mes: 12 } : { anio, mes: mes - 1 };
 }
 
-function buildSql(cur: Period, prev: Period, empresa: string): string {
-  const ef = getEmpresaWhere(empresa);
-  const cols = specs
-    .map(
-      (s) =>
-        `MAX(saldo_del_mes) FILTER (WHERE anio = ${cur.anio} AND mes = ${cur.mes} AND ${s.where}${ef}) AS ${s.key}_cur,\n` +
-        `MAX(saldo_del_mes) FILTER (WHERE anio = ${prev.anio} AND mes = ${prev.mes} AND ${s.where}${ef}) AS ${s.key}_prev`,
-    )
-    .join(",\n");
-  return `SELECT\n${cols}\nFROM "estados financieros".balance;`;
-}
+type Raw = Record<string, number | null>;
 
-type Raw = Record<string, number>;
+// MAX(saldo_del_mes) de cada spec en el mes actual (_cur) y en el mes anterior (_prev).
+async function cargarValores(cur: Period, prev: Period, empresa: EmpresaId): Promise<Raw> {
+  const [filasCur, filasPrev] = await Promise.all([balanceDelMes(cur, empresa), balanceDelMes(prev, empresa)]);
+  const row: Raw = {};
+  for (const s of specs) {
+    row[`${s.key}_cur`] = valorBalance(filasCur, "MAX", "saldo_del_mes", s.where);
+    row[`${s.key}_prev`] = valorBalance(filasPrev, "MAX", "saldo_del_mes", s.where);
+  }
+  return row;
+}
 
 function n(v: unknown): number {
   return v === null || v === undefined ? 0 : Number(v);
@@ -250,8 +249,7 @@ export async function getEstadoResultadosMensual(cur: Period, empresa: EmpresaId
     return results.reduce(mergeResultadosMensual);
   }
   const prev = prevMonth(cur);
-  const sql = buildSql(cur, prev, empresa);
-  const [row] = await runManagementSql<Raw>(sql);
+  const row = await cargarValores(cur, prev, empresa);
 
   const actual = computeFrom(row, "cur");
   const anterior = computeFrom(row, "prev");

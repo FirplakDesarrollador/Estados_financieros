@@ -1,7 +1,7 @@
-import { runManagementSql } from "@/lib/supabase/management";
 import type { Period } from "./estado-costo-mensual";
 import { getEstadoResultadosAcumulado } from "./estado-resultados-acumulado";
-import { getEmpresaWhere, EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
+import { EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
+import { balanceDelMes, valorBalance, type Agregacion } from "./fuente";
 
 // Estado de Cambios en el Patrimonio
 // Columnas: Capital Social | Superávit Capital | Reservas | Resultados Ejercicio |
@@ -15,22 +15,28 @@ import { getEmpresaWhere, EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, ty
 
 const BLANK = (col: string) => `(${col} IS NULL OR ${col} = '')`;
 
-function buildEquitySql(aperturaAnio: number, empresa: string): string {
-  const ef = getEmpresaWhere(empresa);
-  return `
-    SELECT
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3105' AND ${BLANK("lvl4")}${ef})  AS s_3105,
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='32'  AND ${BLANK("lvl3")}${ef})  AS s_32,
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3305' AND ${BLANK("lvl4")}${ef}) AS s_3305,
-      MIN(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='36'  AND ${BLANK("lvl3")}${ef})  AS s_36_min,
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='36'  AND ${BLANK("lvl3")}${ef})  AS s_36_max,
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl3='3705' AND ${BLANK("lvl4")}${ef}) AS s_37,
-      MAX(saldo_final) FILTER (WHERE anio=${aperturaAnio} AND mes=12 AND lvl2='39'  AND ${BLANK("lvl3")}${ef})  AS s_39
-    FROM "estados financieros".balance;
-  `;
-}
+// Saldos finales de diciembre del año de apertura.
+const equitySpecs: Array<{ key: string; agg: Agregacion; where: string }> = [
+  { key: "s_3105", agg: "MAX", where: `lvl3 = '3105' and ${BLANK("lvl4")}` },
+  { key: "s_32", agg: "MAX", where: `lvl2 = '32' and ${BLANK("lvl3")}` },
+  { key: "s_3305", agg: "MAX", where: `lvl3 = '3305' and ${BLANK("lvl4")}` },
+  // MIN − MAX de la clase 36: tomaba la diferencia entre las dos copias de 36050590 que tenía la tabla
+  // de Supabase en 2024. La fuente actual tiene una fila por cuenta, así que da 0 (como ya pasaba en
+  // Supabase para diciembre 2025).
+  { key: "s_36_min", agg: "MIN", where: `lvl2 = '36' and ${BLANK("lvl3")}` },
+  { key: "s_36_max", agg: "MAX", where: `lvl2 = '36' and ${BLANK("lvl3")}` },
+  { key: "s_37", agg: "MAX", where: `lvl3 = '3705' and ${BLANK("lvl4")}` },
+  { key: "s_39", agg: "MAX", where: `lvl2 = '39' and ${BLANK("lvl3")}` },
+];
 
-type Raw = Record<string, unknown>;
+type Raw = Record<string, number | null>;
+
+async function cargarApertura(apertura: Period, empresa: EmpresaId): Promise<Raw> {
+  const filas = await balanceDelMes(apertura, empresa);
+  const row: Raw = {};
+  for (const s of equitySpecs) row[s.key] = valorBalance(filas, s.agg, "saldo_final", s.where);
+  return row;
+}
 
 function n(v: unknown): number {
   return v === null || v === undefined ? 0 : Number(v);
@@ -100,9 +106,8 @@ export async function getEstadoCambiosPatrimonio(cur: Period, empresa: EmpresaId
   const apertura: Period = { anio: cur.anio - 1, mes: 12 };
 
   // Run equity opening balances and P&L in parallel — they are independent queries
-  const sql = buildEquitySql(apertura.anio, empresa);
-  const [[row], pnl] = await Promise.all([
-    runManagementSql<Raw>(sql),
+  const [row, pnl] = await Promise.all([
+    cargarApertura(apertura, empresa),
     getEstadoResultadosAcumulado(cur, empresa),
   ]);
 
