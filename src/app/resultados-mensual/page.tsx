@@ -40,7 +40,10 @@ export default async function ResultadosMensualPage({
       actual={actual}
       empresa={empresa}
     >
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-4">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm mb-4">
+        <EstadoResultadoMensualTable data={data} />
+      </div>
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">
           {nombreMes(actual.mes)} {actual.anio} vs {nombreMes(data.periodoAnterior.mes)} {data.periodoAnterior.anio}
         </p>
@@ -49,9 +52,6 @@ export default async function ResultadosMensualPage({
           labelActual={`${nombreMes(actual.mes)} ${actual.anio}`}
           labelAnterior={`${nombreMes(data.periodoAnterior.mes)} ${data.periodoAnterior.anio}`}
         />
-      </div>
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <EstadoResultadoMensualTable data={data} />
       </div>
     </PageShell>
   );

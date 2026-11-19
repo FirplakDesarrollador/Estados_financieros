@@ -46,7 +46,10 @@ export default async function ResultadosAcumuladoPage({
       actual={actual}
       empresa={empresa}
     >
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-4">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm mb-4">
+        <EstadoResultadoAcumuladoTable data={data} />
+      </div>
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">
           Acumulado {actual.anio} vs {data.periodoAnterior.anio}
         </p>
@@ -55,9 +58,6 @@ export default async function ResultadosAcumuladoPage({
           labelActual={`Acum. ${actual.anio}`}
           labelAnterior={`Acum. ${data.periodoAnterior.anio}`}
         />
-      </div>
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <EstadoResultadoAcumuladoTable data={data} />
       </div>
     </PageShell>
   );
