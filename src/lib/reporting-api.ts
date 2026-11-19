@@ -57,16 +57,21 @@ async function apiGet<T>(path: string, params: Record<string, string | number>):
   return res.json() as Promise<T>;
 }
 
+// Empresas que tiene la API (parámetro empresa de los dos endpoints).
+export type EmpresaApi = "firplak" | "viventta";
+
 // Un mes del balance (todos los niveles) y el mismo mes del año anterior. cache() evita repetir la
 // llamada cuando varias partes de la misma página piden el mismo mes.
 export const getBalanceMes = cache(
-  (anio: number, mes: number): Promise<BalanceApiResponse> => apiGet("/api/v1/balance", { anio, mes }),
+  (anio: number, mes: number, empresa: EmpresaApi): Promise<BalanceApiResponse> =>
+    apiGet("/api/v1/balance", { anio, mes, empresa }),
 );
 
 // Débito, crédito y saldo por cuenta de las cuentas 14 y 74 entre dos fechas (yyyy-mm-dd, inclusive).
 export const getCuentas1474PorCuenta = cache(
-  async (desde: string, hasta: string): Promise<CuentaApiTotals[]> => {
+  async (desde: string, hasta: string, empresa: EmpresaApi): Promise<CuentaApiTotals[]> => {
     const res = await apiGet<Cuentas1474ApiResponse>("/api/v1/cuentas-14-74", {
+      empresa,
       fechaDesde: desde,
       fechaHasta: hasta,
       pageSize: 1,

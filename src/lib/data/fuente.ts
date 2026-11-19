@@ -1,5 +1,5 @@
-import type { EmpresaId } from "@/lib/companies";
-import { getBalanceMes, getCuentas1474PorCuenta, type BalanceApiRow } from "@/lib/reporting-api";
+import { DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
+import { getBalanceMes, getCuentas1474PorCuenta, type BalanceApiRow, type EmpresaApi } from "@/lib/reporting-api";
 
 // Fuente de datos de los estados financieros. Antes cada módulo armaba un SELECT con
 // "MAX(columna) FILTER (WHERE anio = … AND mes = … AND <where>)" sobre las tablas balance y
@@ -10,9 +10,18 @@ import { getBalanceMes, getCuentas1474PorCuenta, type BalanceApiRow } from "@/li
 //   col = 'valor'      col in ('a','b')      (col IS NULL OR col = '')
 // Cualquier otra forma lanza un error en lugar de devolver una cifra equivocada.
 //
-// Empresa: la Reporting API hoy solo tiene Firplak. Mientras no existan los endpoints de Viventta,
-// todas las empresas leen los datos de Firplak, igual que hacía la versión sobre Supabase con
-// EMPRESA_SQL_COL = null (src/lib/companies.ts). Cuando estén, se elige aquí la fuente por empresa.
+// Empresa: cada empresa del selector (src/lib/companies.ts) se pide a la API con su parámetro empresa.
+// El consolidado no llega aquí: los módulos lo calculan sumando las empresas individuales.
+const EMPRESA_API: Record<string, EmpresaApi> = {
+  firplak: "firplak",
+  empresa2: "viventta",
+};
+
+function empresaApi(empresa: EmpresaId = DEFAULT_EMPRESA): EmpresaApi {
+  const valor = EMPRESA_API[empresa];
+  if (!valor) throw new Error(`Empresa sin datos en la Reporting API: ${empresa}`);
+  return valor;
+}
 
 export type Period = { anio: number; mes: number };
 
@@ -89,9 +98,8 @@ function agregar(filas: Fila[], agg: Agregacion, columna: string, where: string)
 export type FilasBalance = Fila[];
 
 // Filas de un mes (todos los niveles).
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- ver la nota de empresa arriba
 export async function balanceDelMes({ anio, mes }: Period, empresa?: EmpresaId): Promise<FilasBalance> {
-  const res = await getBalanceMes(anio, mes);
+  const res = await getBalanceMes(anio, mes, empresaApi(empresa));
   return res.rows.map(filaBalance);
 }
 
@@ -107,11 +115,10 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const ultimoDia = (anio: number, mes: number) => new Date(Date.UTC(anio, mes, 0)).getUTCDate();
 
 // Totales por cuenta desde el mes `desdeMes` hasta el mes `p.mes` del año `p.anio`.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- ver la nota de empresa arriba
 export async function cuentasDelPeriodo(p: Period, desdeMes = p.mes, empresa?: EmpresaId): Promise<FilasCuentas> {
   const desde = `${p.anio}-${pad(desdeMes)}-01`;
   const hasta = `${p.anio}-${pad(p.mes)}-${pad(ultimoDia(p.anio, p.mes))}`;
-  const porCuenta = await getCuentas1474PorCuenta(desde, hasta);
+  const porCuenta = await getCuentas1474PorCuenta(desde, hasta, empresaApi(empresa));
   return porCuenta.map((c) => ({ cuenta_contable: c.account, saldo_mensual: c.balance }));
 }
 
@@ -124,9 +131,10 @@ export function valorCuentas(filas: FilasCuentas, where: string): number | null 
 
 // Meses con balance, del más reciente al más antiguo. La API los devuelve en cualquier consulta
 // del balance; se pide el mes en curso (hora de Colombia), que siempre existe tras la carga de las 5:00.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- ver la nota de empresa arriba
+// El consolidado usa los meses de Firplak, que incluyen todos los de Viventta (desde 2025-08).
 export async function periodosDisponibles(empresa?: EmpresaId): Promise<Period[]> {
   const hoy = new Date(Date.now() - 5 * 3_600_000);
-  const res = await getBalanceMes(hoy.getUTCFullYear(), hoy.getUTCMonth() + 1);
+  const fuente = empresa === "consolidado" ? DEFAULT_EMPRESA : empresa;
+  const res = await getBalanceMes(hoy.getUTCFullYear(), hoy.getUTCMonth() + 1, empresaApi(fuente));
   return res.periods.map((p) => ({ anio: p.year, mes: p.month }));
 }
