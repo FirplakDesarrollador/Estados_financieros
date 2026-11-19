@@ -1,5 +1,5 @@
-import { runManagementSql } from "@/lib/supabase/management";
 import type { Period } from "./estado-costo-mensual";
+import { balanceDelMes, valorBalance } from "./fuente";
 
 // Traducción de las medidas DAX de la tabla "Balance General" del modelo de Power BI
 // (ver /powerbi-measures/Balance General.tmdl). Todas son lecturas directas de
@@ -76,18 +76,18 @@ const specs: RawSpec[] = [
   { key: "s_39", where: `lvl2 = '39' and ${BLANK("lvl3")}` },
 ];
 
-function buildSql(cur: Period, prevYear: Period): string {
-  const cols = specs
-    .map(
-      (s) =>
-        `MAX(saldo_final) FILTER (WHERE anio = ${cur.anio} AND mes = ${cur.mes} AND ${s.where}) AS ${s.key}_cur,\n` +
-        `MAX(saldo_final) FILTER (WHERE anio = ${prevYear.anio} AND mes = ${prevYear.mes} AND ${s.where}) AS ${s.key}_prev`,
-    )
-    .join(",\n");
-  return `SELECT\n${cols}\nFROM "estados financieros".balance;`;
-}
+type Raw = Record<string, number | null>;
 
-type Raw = Record<string, number>;
+// MAX(saldo_final) de cada spec en el mes actual (_cur) y el mismo mes del año anterior (_prev).
+async function cargarValores(cur: Period, prevYear: Period): Promise<Raw> {
+  const [filasCur, filasPrev] = await Promise.all([balanceDelMes(cur), balanceDelMes(prevYear)]);
+  const row: Raw = {};
+  for (const s of specs) {
+    row[`${s.key}_cur`] = valorBalance(filasCur, "MAX", "saldo_final", s.where);
+    row[`${s.key}_prev`] = valorBalance(filasPrev, "MAX", "saldo_final", s.where);
+  }
+  return row;
+}
 
 function n(v: unknown): number {
   return v === null || v === undefined ? 0 : Number(v);
@@ -212,8 +212,7 @@ function fila(label: string, actual: number, anterior: number, destacado?: boole
 
 export async function getBalanceGeneral(cur: Period): Promise<BalanceGeneral> {
   const prevYear: Period = { anio: cur.anio - 1, mes: cur.mes };
-  const sql = buildSql(cur, prevYear);
-  const [row] = await runManagementSql<Raw>(sql);
+  const row = await cargarValores(cur, prevYear);
 
   const actual = computeFrom(row, "cur", cur.mes);
   const anterior = computeFrom(row, "prev", prevYear.mes);

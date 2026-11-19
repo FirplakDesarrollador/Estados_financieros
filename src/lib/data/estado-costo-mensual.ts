@@ -1,4 +1,4 @@
-import { runManagementSql } from "@/lib/supabase/management";
+import { balanceDelMes, cuentasDelPeriodo, periodosDisponibles, valorBalance, valorCuentas } from "./fuente";
 
 // Traducción directa de las medidas DAX de la tabla "Medidas Estado Costo" del
 // modelo de Power BI (ver /powerbi-measures/Medidas Estado Costo.tmdl) a SQL.
@@ -102,46 +102,36 @@ function prevMonth({ anio, mes }: Period): Period {
   return mes === 1 ? { anio: anio - 1, mes: 12 } : { anio, mes: mes - 1 };
 }
 
-// El Balance trae filas duplicadas para algunas cuentas puntuales (mismo mes/cuenta,
-// a veces idénticas, a veces con Débito/Crédito distinto) — un artefacto de la fuente
-// aún sin diagnosticar del todo. Sumar ciegamente por columna rompe cuentas donde el
-// duplicado es una copia idéntica (dobla el valor). Por ahora replicamos el DAX
-// original tal cual (MAX), que es lo que coincide con el reporte de Power BI para
-// la enorme mayoría de cuentas; el caso puntual de "Traslado de Costos" queda
-// pendiente de resolver deduplicando el origen de datos.
+// Se replica el DAX original tal cual (MAX o SUM según el spec). La tabla balance de Supabase
+// tenía filas duplicadas en 2024, que doblaban los SUM (p. ej. M.O. vinculados); la fuente
+// actual (Informe_balance vía Reporting API) tiene una fila por mes y código de cuenta.
 function effectiveAgg(s: RawSpec): "MAX" | "SUM" {
   return s.agg;
 }
 
-function buildSql(cur: Period, prev: Period): string {
-  const balCols = balanceSpecs
-    .map(
-      (s) =>
-        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${cur.anio} AND mes = ${cur.mes} AND ${s.where}) AS ${s.key}_cur,\n` +
-        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${prev.anio} AND mes = ${prev.mes} AND ${s.where}) AS ${s.key}_prev`,
-    )
-    .join(",\n");
+type Raw = Record<string, number | null>;
 
-  const ctaCols = cuentasSpecs
-    .map(
-      (s) =>
-        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${cur.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) = ${cur.mes} AND ${s.where}) AS ${s.key}_cur,\n` +
-        `${effectiveAgg(s)}(${s.column}) FILTER (WHERE anio = ${prev.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) = ${prev.mes} AND ${s.where}) AS ${s.key}_prev`,
-    )
-    .join(",\n");
-
-  return `
-    WITH b AS (
-      SELECT\n${balCols}\n      FROM "estados financieros".balance
-    ),
-    c AS (
-      SELECT\n${ctaCols}\n      FROM "estados financieros".cuentas_14_y_74
-    )
-    SELECT * FROM b, c;
-  `;
+// Valor de cada spec en el mes actual (_cur) y en el mes anterior (_prev). Las cuentas 14 y 74
+// suman solo los movimientos de cada mes.
+async function cargarValores(cur: Period, prev: Period): Promise<Raw> {
+  const [balCur, balPrev, ctaCur, ctaPrev] = await Promise.all([
+    balanceDelMes(cur),
+    balanceDelMes(prev),
+    cuentasDelPeriodo(cur),
+    cuentasDelPeriodo(prev),
+  ]);
+  const row: Raw = {};
+  for (const s of balanceSpecs) {
+    if (s.column === "saldo_mensual") throw new Error(`saldo_mensual no es una columna del balance (${s.key})`);
+    row[`${s.key}_cur`] = valorBalance(balCur, effectiveAgg(s), s.column, s.where);
+    row[`${s.key}_prev`] = valorBalance(balPrev, effectiveAgg(s), s.column, s.where);
+  }
+  for (const s of cuentasSpecs) {
+    row[`${s.key}_cur`] = valorCuentas(ctaCur, s.where);
+    row[`${s.key}_prev`] = valorCuentas(ctaPrev, s.where);
+  }
+  return row;
 }
-
-type Raw = Record<string, number>;
 
 function n(v: unknown): number {
   return v === null || v === undefined ? 0 : Number(v);
@@ -309,16 +299,12 @@ function divide(a: number, b: number): number | null {
 }
 
 export async function getPeriodosDisponibles(): Promise<Period[]> {
-  const rows = await runManagementSql<{ anio: number; mes: number }>(
-    `SELECT DISTINCT anio, mes FROM "estados financieros".balance WHERE anio IS NOT NULL AND mes IS NOT NULL ORDER BY anio DESC, mes DESC;`,
-  );
-  return rows.map((r) => ({ anio: Number(r.anio), mes: Number(r.mes) }));
+  return periodosDisponibles();
 }
 
 export async function getEstadoCostoMensual(cur: Period): Promise<EstadoCostoMensual> {
   const prev = prevMonth(cur);
-  const sql = buildSql(cur, prev);
-  const [row] = await runManagementSql<Raw>(sql);
+  const row = await cargarValores(cur, prev);
 
   const actual = computeAtomics(row, "cur");
   const anterior = computeAtomics(row, "prev");
@@ -389,8 +375,7 @@ export type DetalleRubro = {
 
 export async function getDetalleCostoMensual(cur: Period, rubro: string): Promise<DetalleRubro> {
   const prev = prevMonth(cur);
-  const sql = buildSql(cur, prev);
-  const [row] = await runManagementSql<Raw>(sql);
+  const row = await cargarValores(cur, prev);
 
   const actual = computeAtomics(row, "cur");
   const anterior = computeAtomics(row, "prev");

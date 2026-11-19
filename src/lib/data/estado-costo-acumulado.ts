@@ -1,5 +1,5 @@
-import { runManagementSql } from "@/lib/supabase/management";
 import type { Period } from "./estado-costo-mensual";
+import { balanceDelMes, cuentasDelPeriodo, valorBalance, valorCuentas } from "./fuente";
 
 // Traducción de las medidas "Acum ..." de la tabla "Medidas Estado Costo" del
 // modelo de Power BI, para el Estado del Costo Acumulado. A diferencia del
@@ -80,38 +80,32 @@ const cuentasYtdSpecs = [
   { key: "compras_comerc", where: "cuenta_contable in ('14350505','14350510')" },
 ];
 
-function buildSql(cur: Period, prevYear: Period): string {
-  const balCols = balanceSpecs
-    .map((s) => {
-      const mesExpr = (p: Period) => (s.mode === "jan" ? 1 : p.mes);
-      const column = s.mode === "jan" ? "saldo_inicial" : "saldo_final";
-      return (
-        `${s.agg}(${column}) FILTER (WHERE anio = ${cur.anio} AND mes = ${mesExpr(cur)} AND ${s.where}) AS ${s.key}_cur,\n` +
-        `${s.agg}(${column}) FILTER (WHERE anio = ${prevYear.anio} AND mes = ${mesExpr(prevYear)} AND ${s.where}) AS ${s.key}_prev`
-      );
-    })
-    .join(",\n");
+type Raw = Record<string, number | null>;
 
-  const ctaCols = cuentasYtdSpecs
-    .map(
-      (s) =>
-        `SUM(saldo_mensual) FILTER (WHERE anio = ${cur.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) BETWEEN 1 AND ${cur.mes} AND ${s.where}) AS ${s.key}_cur,\n` +
-        `SUM(saldo_mensual) FILTER (WHERE anio = ${prevYear.anio} AND EXTRACT(MONTH FROM fecha_contabilizacion) BETWEEN 1 AND ${prevYear.mes} AND ${s.where}) AS ${s.key}_prev`,
-    )
-    .join(",\n");
-
-  return `
-    WITH b AS (
-      SELECT\n${balCols}\n      FROM "estados financieros".balance
-    ),
-    c AS (
-      SELECT\n${ctaCols}\n      FROM "estados financieros".cuentas_14_y_74
-    )
-    SELECT * FROM b, c;
-  `;
+// Valor de cada spec en el año actual (_cur) y el anterior (_prev). Los specs "jan" leen el saldo
+// inicial de enero; los "exact", el saldo final del mes. Las cuentas 14 y 74 suman de enero al mes.
+async function cargarValores(cur: Period, prevYear: Period): Promise<Raw> {
+  const [balCur, balPrev, balJanCur, balJanPrev, ctaCur, ctaPrev] = await Promise.all([
+    balanceDelMes(cur),
+    balanceDelMes(prevYear),
+    balanceDelMes({ anio: cur.anio, mes: 1 }),
+    balanceDelMes({ anio: prevYear.anio, mes: 1 }),
+    cuentasDelPeriodo(cur, 1),
+    cuentasDelPeriodo(prevYear, 1),
+  ]);
+  const row: Raw = {};
+  for (const s of balanceSpecs) {
+    const jan = s.mode === "jan";
+    const column = jan ? "saldo_inicial" : "saldo_final";
+    row[`${s.key}_cur`] = valorBalance(jan ? balJanCur : balCur, s.agg, column, s.where);
+    row[`${s.key}_prev`] = valorBalance(jan ? balJanPrev : balPrev, s.agg, column, s.where);
+  }
+  for (const s of cuentasYtdSpecs) {
+    row[`${s.key}_cur`] = valorCuentas(ctaCur, s.where);
+    row[`${s.key}_prev`] = valorCuentas(ctaPrev, s.where);
+  }
+  return row;
 }
-
-type Raw = Record<string, number>;
 
 function n(v: unknown): number {
   return v === null || v === undefined ? 0 : Number(v);
@@ -265,8 +259,7 @@ function divide(a: number, b: number): number | null {
 
 export async function getEstadoCostoAcumulado(cur: Period): Promise<EstadoCostoAcumulado> {
   const prevYear: Period = { anio: cur.anio - 1, mes: cur.mes };
-  const sql = buildSql(cur, prevYear);
-  const [row] = await runManagementSql<Raw>(sql);
+  const row = await cargarValores(cur, prevYear);
 
   const actual = computeAtomics(row, "cur");
   const anterior = computeAtomics(row, "prev");
@@ -325,8 +318,7 @@ export type DetalleRubroAcumulado = {
 
 export async function getDetalleCostoAcumulado(cur: Period, rubro: string): Promise<DetalleRubroAcumulado> {
   const prevYear: Period = { anio: cur.anio - 1, mes: cur.mes };
-  const sql = buildSql(cur, prevYear);
-  const [row] = await runManagementSql<Raw>(sql);
+  const row = await cargarValores(cur, prevYear);
 
   const actual = computeAtomics(row, "cur");
   const anterior = computeAtomics(row, "prev");
