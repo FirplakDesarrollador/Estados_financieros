@@ -1,4 +1,5 @@
 import type { Period } from "./estado-costo-mensual";
+import { EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
 import { balanceDelMes, valorBalance } from "./fuente";
 
 // Traducción de las medidas DAX (mensuales) de "Medidas Resultado" del modelo Power BI.
@@ -86,8 +87,8 @@ function prevMonth({ anio, mes }: Period): Period {
 type Raw = Record<string, number | null>;
 
 // MAX(saldo_del_mes) de cada spec en el mes actual (_cur) y en el mes anterior (_prev).
-async function cargarValores(cur: Period, prev: Period): Promise<Raw> {
-  const [filasCur, filasPrev] = await Promise.all([balanceDelMes(cur), balanceDelMes(prev)]);
+async function cargarValores(cur: Period, prev: Period, empresa: EmpresaId): Promise<Raw> {
+  const [filasCur, filasPrev] = await Promise.all([balanceDelMes(cur, empresa), balanceDelMes(prev, empresa)]);
   const row: Raw = {};
   for (const s of specs) {
     row[`${s.key}_cur`] = valorBalance(filasCur, "MAX", "saldo_del_mes", s.where);
@@ -219,9 +220,36 @@ function fila(label: string, actual: number, mesAnterior: number, destacado?: bo
   return { label, actual, mesAnterior, variacion, porcentajeVariacion: divide(variacion, mesAnterior), destacado };
 }
 
-export async function getEstadoResultadosMensual(cur: Period): Promise<EstadoResultadosMensual> {
+function mergeResultadosMensual(a: EstadoResultadosMensual, b: EstadoResultadosMensual): EstadoResultadosMensual {
+  const mergeFilas = (fa: FilaResultado[], fb: FilaResultado[]) =>
+    fa.map((f, i) => {
+      const g = fb[i];
+      const actual = f.actual + g.actual;
+      const mesAnterior = f.mesAnterior + g.mesAnterior;
+      const variacion = actual - mesAnterior;
+      return { ...f, actual, mesAnterior, variacion, porcentajeVariacion: mesAnterior !== 0 ? variacion / mesAnterior : null };
+    });
+  return {
+    periodoActual: a.periodoActual,
+    periodoAnterior: a.periodoAnterior,
+    filas: mergeFilas(a.filas, b.filas),
+    detalles: {
+      ventasNetas: mergeFilas(a.detalles.ventasNetas, b.detalles.ventasNetas),
+      costoVentas: mergeFilas(a.detalles.costoVentas, b.detalles.costoVentas),
+      gastosOperativos: mergeFilas(a.detalles.gastosOperativos, b.detalles.gastosOperativos),
+      ingresosNoOperativos: mergeFilas(a.detalles.ingresosNoOperativos, b.detalles.ingresosNoOperativos),
+      gastosNoOperativos: mergeFilas(a.detalles.gastosNoOperativos, b.detalles.gastosNoOperativos),
+    },
+  };
+}
+
+export async function getEstadoResultadosMensual(cur: Period, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<EstadoResultadosMensual> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getEstadoResultadosMensual(cur, id)));
+    return results.reduce(mergeResultadosMensual);
+  }
   const prev = prevMonth(cur);
-  const row = await cargarValores(cur, prev);
+  const row = await cargarValores(cur, prev, empresa);
 
   const actual = computeFrom(row, "cur");
   const anterior = computeFrom(row, "prev");

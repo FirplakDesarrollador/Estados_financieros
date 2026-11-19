@@ -1,3 +1,4 @@
+import type { EmpresaId } from "@/lib/companies";
 import { getBalanceMes, getCuentas1474PorCuenta, type BalanceApiRow } from "@/lib/reporting-api";
 
 // Fuente de datos de los estados financieros. Antes cada módulo armaba un SELECT con
@@ -8,11 +9,15 @@ import { getBalanceMes, getCuentas1474PorCuenta, type BalanceApiRow } from "@/li
 // Los <where> de los módulos solo usan estas formas, unidas con "and":
 //   col = 'valor'      col in ('a','b')      (col IS NULL OR col = '')
 // Cualquier otra forma lanza un error en lugar de devolver una cifra equivocada.
+//
+// Empresa: la Reporting API hoy solo tiene Firplak. Mientras no existan los endpoints de Viventta,
+// todas las empresas leen los datos de Firplak, igual que hacía la versión sobre Supabase con
+// EMPRESA_SQL_COL = null (src/lib/companies.ts). Cuando estén, se elige aquí la fuente por empresa.
 
 export type Period = { anio: number; mes: number };
 
 export type ColumnaBalance = "saldo_inicial" | "saldo_final" | "saldo_del_mes" | "debito" | "credito";
-export type Agregacion = "MAX" | "SUM";
+export type Agregacion = "MAX" | "MIN" | "SUM";
 
 type Fila = Record<string, string | number | null>;
 type Predicado = (fila: Fila) => boolean;
@@ -64,7 +69,7 @@ function compilarWhere(where: string): Predicado {
   return predicado;
 }
 
-// Igual que MAX/SUM de SQL: sin filas que cumplan, el resultado es null (los módulos lo leen como 0).
+// Igual que MAX/MIN/SUM de SQL: sin filas que cumplan, el resultado es null (los módulos lo leen como 0).
 function agregar(filas: Fila[], agg: Agregacion, columna: string, where: string): number | null {
   const cumple = compilarWhere(where);
   let resultado: number | null = null;
@@ -72,7 +77,9 @@ function agregar(filas: Fila[], agg: Agregacion, columna: string, where: string)
     if (!cumple(f)) continue;
     const valor = Number(f[columna] ?? 0);
     if (resultado === null) resultado = valor;
-    else resultado = agg === "MAX" ? Math.max(resultado, valor) : resultado + valor;
+    else if (agg === "MAX") resultado = Math.max(resultado, valor);
+    else if (agg === "MIN") resultado = Math.min(resultado, valor);
+    else resultado += valor;
   }
   return resultado;
 }
@@ -82,7 +89,8 @@ function agregar(filas: Fila[], agg: Agregacion, columna: string, where: string)
 export type FilasBalance = Fila[];
 
 // Filas de un mes (todos los niveles).
-export async function balanceDelMes({ anio, mes }: Period): Promise<FilasBalance> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- ver la nota de empresa arriba
+export async function balanceDelMes({ anio, mes }: Period, empresa?: EmpresaId): Promise<FilasBalance> {
   const res = await getBalanceMes(anio, mes);
   return res.rows.map(filaBalance);
 }
@@ -99,7 +107,8 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const ultimoDia = (anio: number, mes: number) => new Date(Date.UTC(anio, mes, 0)).getUTCDate();
 
 // Totales por cuenta desde el mes `desdeMes` hasta el mes `p.mes` del año `p.anio`.
-export async function cuentasDelPeriodo(p: Period, desdeMes = p.mes): Promise<FilasCuentas> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- ver la nota de empresa arriba
+export async function cuentasDelPeriodo(p: Period, desdeMes = p.mes, empresa?: EmpresaId): Promise<FilasCuentas> {
   const desde = `${p.anio}-${pad(desdeMes)}-01`;
   const hasta = `${p.anio}-${pad(p.mes)}-${pad(ultimoDia(p.anio, p.mes))}`;
   const porCuenta = await getCuentas1474PorCuenta(desde, hasta);
@@ -115,7 +124,8 @@ export function valorCuentas(filas: FilasCuentas, where: string): number | null 
 
 // Meses con balance, del más reciente al más antiguo. La API los devuelve en cualquier consulta
 // del balance; se pide el mes en curso (hora de Colombia), que siempre existe tras la carga de las 5:00.
-export async function periodosDisponibles(): Promise<Period[]> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- ver la nota de empresa arriba
+export async function periodosDisponibles(empresa?: EmpresaId): Promise<Period[]> {
   const hoy = new Date(Date.now() - 5 * 3_600_000);
   const res = await getBalanceMes(hoy.getUTCFullYear(), hoy.getUTCMonth() + 1);
   return res.periods.map((p) => ({ anio: p.year, mes: p.month }));

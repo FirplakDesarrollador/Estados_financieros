@@ -1,4 +1,5 @@
 import type { Period } from "./estado-costo-mensual";
+import { EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
 import { balanceDelMes, valorBalance } from "./fuente";
 
 // Traducción de las medidas DAX de la tabla "Balance General" del modelo de Power BI
@@ -79,8 +80,8 @@ const specs: RawSpec[] = [
 type Raw = Record<string, number | null>;
 
 // MAX(saldo_final) de cada spec en el mes actual (_cur) y el mismo mes del año anterior (_prev).
-async function cargarValores(cur: Period, prevYear: Period): Promise<Raw> {
-  const [filasCur, filasPrev] = await Promise.all([balanceDelMes(cur), balanceDelMes(prevYear)]);
+async function cargarValores(cur: Period, prevYear: Period, empresa: EmpresaId): Promise<Raw> {
+  const [filasCur, filasPrev] = await Promise.all([balanceDelMes(cur, empresa), balanceDelMes(prevYear, empresa)]);
   const row: Raw = {};
   for (const s of specs) {
     row[`${s.key}_cur`] = valorBalance(filasCur, "MAX", "saldo_final", s.where);
@@ -210,34 +211,46 @@ function fila(label: string, actual: number, anterior: number, destacado?: boole
   return { label, actual, anterior, variacion, porcentajeVariacion: divide(variacion, anterior), destacado };
 }
 
-export async function getBalanceGeneral(cur: Period): Promise<BalanceGeneral> {
+function mergeBalance(a: BalanceGeneral, b: BalanceGeneral): BalanceGeneral {
+  const mergeFilas = (fa: FilaBalance[], fb: FilaBalance[]) =>
+    fa.map((f, i) => {
+      const g = fb[i];
+      const actual = f.actual + g.actual;
+      const anterior = f.anterior + g.anterior;
+      const variacion = actual - anterior;
+      return { ...f, actual, anterior, variacion, porcentajeVariacion: anterior !== 0 ? variacion / anterior : null };
+    });
+  return {
+    periodoActual: a.periodoActual,
+    periodoAnterior: a.periodoAnterior,
+    activos: mergeFilas(a.activos, b.activos),
+    pasivosPatrimonio: mergeFilas(a.pasivosPatrimonio, b.pasivosPatrimonio),
+  };
+}
+
+export async function getBalanceGeneral(cur: Period, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<BalanceGeneral> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getBalanceGeneral(cur, id)));
+    return results.reduce(mergeBalance);
+  }
   const prevYear: Period = { anio: cur.anio - 1, mes: cur.mes };
-  const row = await cargarValores(cur, prevYear);
+  const row = await cargarValores(cur, prevYear, empresa);
 
   const actual = computeFrom(row, "cur", cur.mes);
   const anterior = computeFrom(row, "prev", prevYear.mes);
 
   const activos: FilaBalance[] = [
-    fila("Efectivo y Equivalentes", actual.efectivo, anterior.efectivo),
-    fila("Activos Financieros", actual.activosFinancieros, anterior.activosFinancieros),
-    fila("Inventarios", actual.inventarios, anterior.inventarios),
-    fila("Gastos Pagados por Anticipado", actual.gastosPagadosAnticipado, anterior.gastosPagadosAnticipado),
-    fila("Total Activo Corriente", actual.totalActivoCorriente, anterior.totalActivoCorriente, true),
+    fila("Activos Corrientes", actual.totalActivoCorriente, anterior.totalActivoCorriente),
     fila("Propiedad, Planta y Equipo", actual.ppe, anterior.ppe),
     fila("Otros Activos", actual.otrosActivos, anterior.otrosActivos),
     fila("Total Activos", actual.totalActivos, anterior.totalActivos, true),
   ];
 
   const pasivosPatrimonio: FilaBalance[] = [
-    fila("Total Pasivo Corriente", actual.totalPasivoCorriente, anterior.totalPasivoCorriente, true),
-    fila("Total Pasivo No Corriente", actual.totalPasivoNoCorriente, anterior.totalPasivoNoCorriente, true),
-    fila("Total Pasivos", actual.totalPasivos, anterior.totalPasivos, true),
-    fila("Capital Social", actual.capitalSocial, anterior.capitalSocial),
-    fila("Reservas Obligatorias", actual.reservasObligatorias, anterior.reservasObligatorias),
-    fila("Utilidad del Ejercicio", actual.utilidadEjercicio, anterior.utilidadEjercicio),
-    fila("Utilidades Acumuladas", actual.utilidadesAcumuladas, anterior.utilidadesAcumuladas),
-    fila("Total Patrimonio", actual.totalPatrimonio, anterior.totalPatrimonio, true),
-    fila("Total Pasivo + Patrimonio", actual.totalPasivos + actual.totalPatrimonio, anterior.totalPasivos + anterior.totalPatrimonio, true),
+    fila("Pasivos Corrientes", actual.totalPasivoCorriente, anterior.totalPasivoCorriente),
+    fila("Pasivos No Corrientes", actual.totalPasivoNoCorriente, anterior.totalPasivoNoCorriente),
+    fila("Patrimonio", actual.totalPatrimonio, anterior.totalPatrimonio),
+    fila("Pasivo + Patrimonio", actual.totalPasivos + actual.totalPatrimonio, anterior.totalPasivos + anterior.totalPatrimonio, true),
   ];
 
   return { periodoActual: cur, periodoAnterior: prevYear, activos, pasivosPatrimonio };

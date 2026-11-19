@@ -1,3 +1,4 @@
+import { EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
 import { balanceDelMes, cuentasDelPeriodo, periodosDisponibles, valorBalance, valorCuentas } from "./fuente";
 
 // Traducción directa de las medidas DAX de la tabla "Medidas Estado Costo" del
@@ -102,9 +103,13 @@ function prevMonth({ anio, mes }: Period): Period {
   return mes === 1 ? { anio: anio - 1, mes: 12 } : { anio, mes: mes - 1 };
 }
 
-// Se replica el DAX original tal cual (MAX o SUM según el spec). La tabla balance de Supabase
-// tenía filas duplicadas en 2024, que doblaban los SUM (p. ej. M.O. vinculados); la fuente
-// actual (Informe_balance vía Reporting API) tiene una fila por mes y código de cuenta.
+// El Balance trae filas duplicadas para algunas cuentas puntuales (mismo mes/cuenta,
+// a veces idénticas, a veces con Débito/Crédito distinto) — un artefacto de la fuente
+// aún sin diagnosticar del todo. Sumar ciegamente por columna rompe cuentas donde el
+// duplicado es una copia idéntica (dobla el valor). Por ahora replicamos el DAX
+// original tal cual (MAX), que es lo que coincide con el reporte de Power BI para
+// la enorme mayoría de cuentas; el caso puntual de "Traslado de Costos" queda
+// pendiente de resolver deduplicando el origen de datos.
 function effectiveAgg(s: RawSpec): "MAX" | "SUM" {
   return s.agg;
 }
@@ -113,12 +118,12 @@ type Raw = Record<string, number | null>;
 
 // Valor de cada spec en el mes actual (_cur) y en el mes anterior (_prev). Las cuentas 14 y 74
 // suman solo los movimientos de cada mes.
-async function cargarValores(cur: Period, prev: Period): Promise<Raw> {
+async function cargarValores(cur: Period, prev: Period, empresa: EmpresaId): Promise<Raw> {
   const [balCur, balPrev, ctaCur, ctaPrev] = await Promise.all([
-    balanceDelMes(cur),
-    balanceDelMes(prev),
-    cuentasDelPeriodo(cur),
-    cuentasDelPeriodo(prev),
+    balanceDelMes(cur, empresa),
+    balanceDelMes(prev, empresa),
+    cuentasDelPeriodo(cur, undefined, empresa),
+    cuentasDelPeriodo(prev, undefined, empresa),
   ]);
   const row: Raw = {};
   for (const s of balanceSpecs) {
@@ -298,13 +303,31 @@ function divide(a: number, b: number): number | null {
   return b === 0 ? null : a / b;
 }
 
-export async function getPeriodosDisponibles(): Promise<Period[]> {
-  return periodosDisponibles();
+export async function getPeriodosDisponibles(empresa: EmpresaId = DEFAULT_EMPRESA): Promise<Period[]> {
+  return periodosDisponibles(empresa);
 }
 
-export async function getEstadoCostoMensual(cur: Period): Promise<EstadoCostoMensual> {
+function mergeCostoMensual(a: EstadoCostoMensual, b: EstadoCostoMensual): EstadoCostoMensual {
+  return {
+    periodoActual: a.periodoActual,
+    periodoAnterior: a.periodoAnterior,
+    filas: a.filas.map((fa, i) => {
+      const fb = b.filas[i];
+      const actual = fa.actual + fb.actual;
+      const mesAnterior = fa.mesAnterior + fb.mesAnterior;
+      const variacion = actual - mesAnterior;
+      return { ...fa, actual, mesAnterior, variacion, porcentaje: null, porcentajeMesAnterior: null, porcentajeVariacion: mesAnterior !== 0 ? variacion / mesAnterior : null };
+    }),
+  };
+}
+
+export async function getEstadoCostoMensual(cur: Period, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<EstadoCostoMensual> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getEstadoCostoMensual(cur, id)));
+    return results.reduce(mergeCostoMensual);
+  }
   const prev = prevMonth(cur);
-  const row = await cargarValores(cur, prev);
+  const row = await cargarValores(cur, prev, empresa);
 
   const actual = computeAtomics(row, "cur");
   const anterior = computeAtomics(row, "prev");
@@ -373,9 +396,27 @@ export type DetalleRubro = {
   componentes: Array<{ label: string; actual: number; mesAnterior: number; variacion: number }>;
 };
 
-export async function getDetalleCostoMensual(cur: Period, rubro: string): Promise<DetalleRubro> {
+function mergeDetalleRubro(a: DetalleRubro, b: DetalleRubro): DetalleRubro {
+  return {
+    ...a,
+    totalActual: a.totalActual + b.totalActual,
+    totalAnterior: a.totalAnterior + b.totalAnterior,
+    componentes: a.componentes.map((ca, i) => {
+      const cb = b.componentes[i];
+      const actual = ca.actual + (cb?.actual ?? 0);
+      const mesAnterior = ca.mesAnterior + (cb?.mesAnterior ?? 0);
+      return { label: ca.label, actual, mesAnterior, variacion: actual - mesAnterior };
+    }),
+  };
+}
+
+export async function getDetalleCostoMensual(cur: Period, rubro: string, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<DetalleRubro> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getDetalleCostoMensual(cur, rubro, id)));
+    return results.reduce(mergeDetalleRubro);
+  }
   const prev = prevMonth(cur);
-  const row = await cargarValores(cur, prev);
+  const row = await cargarValores(cur, prev, empresa);
 
   const actual = computeAtomics(row, "cur");
   const anterior = computeAtomics(row, "prev");

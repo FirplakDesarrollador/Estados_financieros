@@ -1,4 +1,5 @@
 import type { Period } from "./estado-costo-mensual";
+import { EMPRESA_SINGLE_IDS, isConsolidado, DEFAULT_EMPRESA, type EmpresaId } from "@/lib/companies";
 import { balanceDelMes, cuentasDelPeriodo, valorBalance, valorCuentas } from "./fuente";
 
 // Traducción de las medidas "Acum ..." de la tabla "Medidas Estado Costo" del
@@ -44,6 +45,7 @@ const balanceSpecs: BalanceSpec[] = [
   { key: "sf_7315", mode: "exact", agg: "MAX", where: "lvl3 = '7315'" },
   { key: "sf_7320", mode: "exact", agg: "MAX", where: "lvl3 = '7320'" },
   { key: "sf_7335", mode: "exact", agg: "MAX", where: "lvl3 = '7335'" },
+  { key: "sf_7330", mode: "exact", agg: "MAX", where: "lvl3 = '7330'" },
   { key: "sf_7345", mode: "exact", agg: "MAX", where: "lvl3 = '7345'" },
   { key: "sf_7350", mode: "exact", agg: "MAX", where: "lvl3 = '7350'" },
   { key: "sf_7360", mode: "exact", agg: "MAX", where: "lvl3 = '7360'" },
@@ -84,14 +86,14 @@ type Raw = Record<string, number | null>;
 
 // Valor de cada spec en el año actual (_cur) y el anterior (_prev). Los specs "jan" leen el saldo
 // inicial de enero; los "exact", el saldo final del mes. Las cuentas 14 y 74 suman de enero al mes.
-async function cargarValores(cur: Period, prevYear: Period): Promise<Raw> {
+async function cargarValores(cur: Period, prevYear: Period, empresa: EmpresaId): Promise<Raw> {
   const [balCur, balPrev, balJanCur, balJanPrev, ctaCur, ctaPrev] = await Promise.all([
-    balanceDelMes(cur),
-    balanceDelMes(prevYear),
-    balanceDelMes({ anio: cur.anio, mes: 1 }),
-    balanceDelMes({ anio: prevYear.anio, mes: 1 }),
-    cuentasDelPeriodo(cur, 1),
-    cuentasDelPeriodo(prevYear, 1),
+    balanceDelMes(cur, empresa),
+    balanceDelMes(prevYear, empresa),
+    balanceDelMes({ anio: cur.anio, mes: 1 }, empresa),
+    balanceDelMes({ anio: prevYear.anio, mes: 1 }, empresa),
+    cuentasDelPeriodo(cur, 1, empresa),
+    cuentasDelPeriodo(prevYear, 1, empresa),
   ]);
   const row: Raw = {};
   for (const s of balanceSpecs) {
@@ -133,6 +135,7 @@ function computeAtomics(row: Raw, suffix: "cur" | "prev") {
   const honorarios = g("sf_7310");
   const impuestos = g("sf_7315");
   const arrendamiento = g("sf_7320");
+  const seguros = g("sf_7330");
   const servicios = g("sf_7335");
   const mantenimiento = g("sf_7345");
   const adecuacion = g("sf_7350");
@@ -141,7 +144,7 @@ function computeAtomics(row: Raw, suffix: "cur" | "prev") {
     g("sf_7395_blank") - g("sf_73959585") - g("sf_73959595b") - g("sf_73959580") - g("sf_73959540") - g("sf_73959545");
   const gastosViaje = g("sf_7355");
   const cif =
-    moIndirecta + honorarios + impuestos + arrendamiento + servicios + mantenimiento + adecuacion + depreciacion + otrosCif + gastosViaje;
+    moIndirecta + honorarios + impuestos + arrendamiento + seguros + servicios + mantenimiento + adecuacion + depreciacion + otrosCif + gastosViaje;
 
   const costoProduccionPeriodo = costoMpUtilizada + costoMod + cif;
 
@@ -160,9 +163,7 @@ function computeAtomics(row: Raw, suffix: "cur" | "prev") {
   const costoVentaManufacturados = totalReal;
   const retiroMuestraVentaReal = totalReal - trasladoDeCostos - invFinalProdTerminado - costoProdDispoVenta;
 
-  const costosProductosVendidos = g("sf_61_lvl3_blank");
-  const descuentosFinancierosAprovechados = g("sf_42104005");
-  const totalCostoVentas = costosProductosVendidos + descuentosFinancierosAprovechados;
+  const totalCostoVentas = costoVentaManufacturados;
 
   const totalVentas =
     g("sf_41_blank") * -1 + g("sf_4205_blank") * -1 + g("sf_423565_blank") * -1 + g("sf_4275_blank") * -1 + g("sf_42750510") + g("sf_42750520");
@@ -192,6 +193,7 @@ function computeAtomics(row: Raw, suffix: "cur" | "prev") {
       { label: "Honorarios", valor: honorarios },
       { label: "Impuestos", valor: impuestos },
       { label: "Arrendamiento", valor: arrendamiento },
+      { label: "Seguros", valor: seguros },
       { label: "Servicios", valor: servicios },
       { label: "Mantenimiento", valor: mantenimiento },
       { label: "Adecuación", valor: adecuacion },
@@ -218,8 +220,7 @@ function computeAtomics(row: Raw, suffix: "cur" | "prev") {
       { label: "Costo Prod. Disponible para Venta", valor: costoProdDispoVenta },
     ],
     "total-costo-ventas": [
-      { label: "Costos Productos Vendidos (cuenta 61)", valor: costosProductosVendidos },
-      { label: "Descuentos Financieros Aprovechados", valor: descuentosFinancierosAprovechados },
+      { label: "Costo Venta Manufacturados (cuenta 61)", valor: costoVentaManufacturados },
     ],
   };
 
@@ -257,9 +258,27 @@ function divide(a: number, b: number): number | null {
   return b === 0 ? null : a / b;
 }
 
-export async function getEstadoCostoAcumulado(cur: Period): Promise<EstadoCostoAcumulado> {
+function mergeCostoAcumulado(a: EstadoCostoAcumulado, b: EstadoCostoAcumulado): EstadoCostoAcumulado {
+  return {
+    periodoActual: a.periodoActual,
+    periodoAnterior: a.periodoAnterior,
+    filas: a.filas.map((fa, i) => {
+      const fb = b.filas[i];
+      const actual = fa.actual + fb.actual;
+      const anioAnterior = fa.anioAnterior + fb.anioAnterior;
+      const variacion = actual - anioAnterior;
+      return { ...fa, actual, anioAnterior, variacion, porcentaje: null, porcentajeAnioAnterior: null, porcentajeVariacion: anioAnterior !== 0 ? variacion / anioAnterior : null };
+    }),
+  };
+}
+
+export async function getEstadoCostoAcumulado(cur: Period, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<EstadoCostoAcumulado> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getEstadoCostoAcumulado(cur, id)));
+    return results.reduce(mergeCostoAcumulado);
+  }
   const prevYear: Period = { anio: cur.anio - 1, mes: cur.mes };
-  const row = await cargarValores(cur, prevYear);
+  const row = await cargarValores(cur, prevYear, empresa);
 
   const actual = computeAtomics(row, "cur");
   const anterior = computeAtomics(row, "prev");
@@ -316,9 +335,27 @@ export type DetalleRubroAcumulado = {
   componentes: Array<{ label: string; actual: number; anioAnterior: number; variacion: number }>;
 };
 
-export async function getDetalleCostoAcumulado(cur: Period, rubro: string): Promise<DetalleRubroAcumulado> {
+function mergeDetalleRubroAcumulado(a: DetalleRubroAcumulado, b: DetalleRubroAcumulado): DetalleRubroAcumulado {
+  return {
+    ...a,
+    totalActual: a.totalActual + b.totalActual,
+    totalAnterior: a.totalAnterior + b.totalAnterior,
+    componentes: a.componentes.map((ca, i) => {
+      const cb = b.componentes[i];
+      const actual = ca.actual + (cb?.actual ?? 0);
+      const anioAnterior = ca.anioAnterior + (cb?.anioAnterior ?? 0);
+      return { label: ca.label, actual, anioAnterior, variacion: actual - anioAnterior };
+    }),
+  };
+}
+
+export async function getDetalleCostoAcumulado(cur: Period, rubro: string, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<DetalleRubroAcumulado> {
+  if (isConsolidado(empresa)) {
+    const results = await Promise.all(EMPRESA_SINGLE_IDS.map((id) => getDetalleCostoAcumulado(cur, rubro, id)));
+    return results.reduce(mergeDetalleRubroAcumulado);
+  }
   const prevYear: Period = { anio: cur.anio - 1, mes: cur.mes };
-  const row = await cargarValores(cur, prevYear);
+  const row = await cargarValores(cur, prevYear, empresa);
 
   const actual = computeAtomics(row, "cur");
   const anterior = computeAtomics(row, "prev");
