@@ -52,7 +52,7 @@ export default async function DetalleResultadoAcumuladoPage({
         </p>
 
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <DetalleResultadoAcumuladoTable data={data} />
+          <DetalleResultadoAcumuladoTable data={data} empresa={empresa} />
         </div>
       </main>
     </div>
