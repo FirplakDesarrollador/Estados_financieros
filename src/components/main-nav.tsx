@@ -8,8 +8,11 @@ const SECCIONES = [
   { href: "/cambios-patrimonio", label: "Estado de Cambios en el Patrimonio", ready: true },
 ];
 
-export function MainNav({ current, anio, mes }: { current: string; anio?: number; mes?: number }) {
-  const qs = anio && mes ? `?anio=${anio}&mes=${mes}` : "";
+export function MainNav({ current, anio, mes, empresa }: { current: string; anio?: number; mes?: number; empresa?: string }) {
+  const params = new URLSearchParams();
+  if (anio && mes) { params.set("anio", String(anio)); params.set("mes", String(mes)); }
+  if (empresa && empresa !== "firplak") params.set("empresa", empresa);
+  const qs = params.size ? `?${params}` : "";
   return (
     <nav className="flex flex-wrap gap-1 border-b border-slate-200 bg-white px-8">
       {SECCIONES.map((s) =>
