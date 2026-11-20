@@ -47,7 +47,7 @@ export default async function ResultadosAcumuladoPage({
       empresa={empresa}
     >
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm mb-4">
-        <EstadoResultadoAcumuladoTable data={data} />
+        <EstadoResultadoAcumuladoTable data={data} empresa={empresa} />
       </div>
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">

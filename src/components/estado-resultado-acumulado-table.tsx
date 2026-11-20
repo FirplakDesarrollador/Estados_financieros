@@ -23,7 +23,7 @@ function periodoLabel(mes: number, anio: number): string {
   return `ENE-${nombreMes(mes).slice(0, 3).toUpperCase()} ${anio}`;
 }
 
-export function EstadoResultadoAcumuladoTable({ data }: { data: EstadoResultadosAcumulado }) {
+export function EstadoResultadoAcumuladoTable({ data, empresa = "firplak" }: { data: EstadoResultadosAcumulado; empresa?: string }) {
   const actualLabel = periodoLabel(data.periodoActual.mes, data.periodoActual.anio);
   const anteriorLabel = periodoLabel(data.periodoAnterior.mes, data.periodoAnterior.anio);
 
@@ -76,7 +76,7 @@ export function EstadoResultadoAcumuladoTable({ data }: { data: EstadoResultados
               <td className="py-1">
                 {fila.label === "Utilidad Antes de Impuesto" && (
                   <Link
-                    href={`/detalle/resultado-acumulado?anio=${data.periodoActual.anio}&mes=${data.periodoActual.mes}`}
+                    href={`/detalle/resultado-acumulado?anio=${data.periodoActual.anio}&mes=${data.periodoActual.mes}&empresa=${empresa}`}
                     className="block w-full rounded-md border border-slate-300 px-3 py-2 text-center text-xs text-slate-600 hover:border-slate-400 hover:text-slate-900"
                   >
                     Detalle
