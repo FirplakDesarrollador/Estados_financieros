@@ -134,7 +134,11 @@ function computeFrom(row: Raw, suffix: "cur" | "prev", empresa: EmpresaId) {
 
   const contribucion4x1000 = g("s_51159510") + g("s_51159515");
   const gastosAdministracion = g("s_51") - contribucion4x1000 - g("s_5199");
+  const gastosAdministracionFirplak = esViventta ? 0 : gastosAdministracion;
+  const gastosAdministracionViventta = esViventta ? gastosAdministracion : 0;
   const gastosVentasBruto = g("s_52");
+  const gastosVentasFirplak = esViventta ? 0 : gastosVentasBruto;
+  const gastosVentasViventta = esViventta ? gastosVentasBruto : 0;
   const descuentosCom = -g("s_52991090");
   const gastosVentas = gastosVentasBruto + descuentosCom;
   const gastosOperativos = gastosAdministracion + gastosVentas;
@@ -182,7 +186,8 @@ function computeFrom(row: Raw, suffix: "cur" | "prev", empresa: EmpresaId) {
     devolucionesFirplak, devolucionesViventta, devolucionesVentas, descuentosFinancierosVentas,
     viventta505, viventta510, viventta515,
     costoFirplak, costoViventta, costosProductosVendidos, descuentosFinancierosAprovechados,
-    gastosAdministracion, gastosVentasBruto, descuentosCom,
+    gastosAdministracion, gastosAdministracionFirplak, gastosAdministracionViventta,
+    gastosVentasBruto, gastosVentasFirplak, gastosVentasViventta, descuentosCom,
     ingrIntereses, ingrDifCambio, ingrCoberturaTC, ingrArrendamientos, ingrComisiones,
     ingrFletes, ingrUtilidadPPE, ingrRecuperaciones, ingrIndemnizaciones,
     ingrEjerciciosAnt, ingrDiversos, diverBenefPAEF,
@@ -290,8 +295,10 @@ export async function getEstadoResultadosAcumulado(cur: Period, empresa: Empresa
       fila("Total Costo de Ventas", actual.totalCostoVentas, anterior.totalCostoVentas, true),
     ],
     gastosOperativos: [
-      fila("Gastos Administración", actual.gastosAdministracion, anterior.gastosAdministracion),
-      fila("Gastos de Ventas", actual.gastosVentasBruto, anterior.gastosVentasBruto),
+      fila("Gastos Administración", actual.gastosAdministracionFirplak, anterior.gastosAdministracionFirplak),
+      fila("Gastos Administración Viventta", actual.gastosAdministracionViventta, anterior.gastosAdministracionViventta),
+      fila("Gastos de Ventas", actual.gastosVentasFirplak, anterior.gastosVentasFirplak),
+      fila("Gastos de Ventas Viventta", actual.gastosVentasViventta, anterior.gastosVentasViventta),
       fila("Descuento com", actual.descuentosCom, anterior.descuentosCom),
       fila("Total Gastos Operativos", actual.gastosOperativos, anterior.gastosOperativos, true),
     ],
