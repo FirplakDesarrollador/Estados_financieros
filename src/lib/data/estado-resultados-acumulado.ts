@@ -37,6 +37,7 @@ const specs: RawSpec[] = [
 
   // Costo de Ventas
   { key: "s_61", where: `lvl2 = '61' and ${BLANK("lvl3")}` },
+  { key: "s_61359505", where: "account = '61359505'" },
   { key: "s_42104005", where: "account = '42104005'" },
 
   // Gastos Operativos
@@ -117,6 +118,8 @@ function computeFrom(row: Raw, suffix: "cur" | "prev") {
   const totalVentasNetas =
     ventasNacionales + ventasExportaciones + ventasViventta + ventasMP + devolucionesVentas + descuentosFinancierosVentas;
 
+  const costoViventta = g("s_61359505");
+  const costoFirplak = g("s_61") - costoViventta;
   const costosProductosVendidos = g("s_61");
   const descuentosFinancierosAprovechados = g("s_42104005");
   const totalCostoVentas = costosProductosVendidos + descuentosFinancierosAprovechados;
@@ -172,7 +175,7 @@ function computeFrom(row: Raw, suffix: "cur" | "prev") {
     ventasNacionales, ventasExportaciones, ventasServicios, ventasViventta, ventasMP,
     devolucionesFirplak, devolucionesViventta, devolucionesVentas, descuentosFinancierosVentas,
     viventta505, viventta510, viventta515,
-    costosProductosVendidos, descuentosFinancierosAprovechados,
+    costoFirplak, costoViventta, costosProductosVendidos, descuentosFinancierosAprovechados,
     gastosAdministracion, gastosVentasBruto, descuentosCom,
     ingrIntereses, ingrDifCambio, ingrCoberturaTC, ingrArrendamientos, ingrComisiones,
     ingrFletes, ingrUtilidadPPE, ingrRecuperaciones, ingrIndemnizaciones,
@@ -275,7 +278,8 @@ export async function getEstadoResultadosAcumulado(cur: Period, empresa: Empresa
       fila("Total Ventas Netas", actual.totalVentasNetas, anterior.totalVentasNetas, true),
     ],
     costoVentas: [
-      fila("Costos Productos Vendidos", actual.costosProductosVendidos, anterior.costosProductosVendidos),
+      fila("Costos Productos Vendidos", actual.costoFirplak, anterior.costoFirplak),
+      fila("Costo Viventta", actual.costoViventta, anterior.costoViventta),
       fila("Descuentos Financieros Aprovechados", actual.descuentosFinancierosAprovechados, anterior.descuentosFinancierosAprovechados),
       fila("Total Costo de Ventas", actual.totalCostoVentas, anterior.totalCostoVentas, true),
     ],
