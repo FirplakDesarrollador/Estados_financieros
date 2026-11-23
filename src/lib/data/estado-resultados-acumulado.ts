@@ -100,25 +100,31 @@ function n(v: unknown): number {
   return v === null || v === undefined ? 0 : Number(v);
 }
 
-function computeFrom(row: Raw, suffix: "cur" | "prev") {
+function computeFrom(row: Raw, suffix: "cur" | "prev", empresa: EmpresaId) {
   const g = (key: string) => n(row[`${key}_${suffix}`]);
+  // Los renglones "Viventta" solo deben tomar el dato cuando se calcula esa empresa:
+  // si Firplak tuviera algún saldo incidental en esas cuentas, se queda en su propio renglón
+  // (no se pierde del total) en vez de mezclarse con el de Viventta al consolidar.
+  const esViventta = empresa === "empresa2";
 
   const ventasNacionales = (g("s_41203205") + g("s_41209505") + g("s_41209510") + g("s_41359505") + g("s_41209520") + g("s_41203240")) * -1;
   const ventasExportaciones = (g("s_41203215") + g("s_41203245") + g("s_41209515") + g("s_41359515") + g("s_42050510") + g("s_42050520")) * -1;
-  const ventasServicios = 0;
-  const ventasViventta = (g("s_42356505") + g("s_42356510") + g("s_42356515")) * -1;
-  const viventta505 = g("s_42356505") * -1;
-  const viventta510 = g("s_42356510") * -1;
-  const viventta515 = g("s_42356515") * -1;
+  const ventasViventtaRaw = (g("s_42356505") + g("s_42356510") + g("s_42356515")) * -1;
+  const ventasViventta = esViventta ? ventasViventtaRaw : 0;
+  const ventasServicios = ventasViventtaRaw - ventasViventta;
+  const viventta505 = esViventta ? g("s_42356505") * -1 : 0;
+  const viventta510 = esViventta ? g("s_42356510") * -1 : 0;
+  const viventta515 = esViventta ? g("s_42356515") * -1 : 0;
   const ventasMP = (g("s_42050505") + g("s_42050515") + g("s_42054505")) * -1;
-  const devolucionesFirplak = g("s_4175") * -1;
-  const devolucionesViventta = (g("s_4275") - (g("s_42750510") - g("s_42750520"))) * -1;
+  const devolucionesViventtaRaw = (g("s_4275") - (g("s_42750510") - g("s_42750520"))) * -1;
+  const devolucionesViventta = esViventta ? devolucionesViventtaRaw : 0;
+  const devolucionesFirplak = g("s_4175") * -1 + (devolucionesViventtaRaw - devolucionesViventta);
   const devolucionesVentas = devolucionesFirplak + devolucionesViventta;
   const descuentosFinancierosVentas = g("s_53053505") * -1;
   const totalVentasNetas =
-    ventasNacionales + ventasExportaciones + ventasViventta + ventasMP + devolucionesVentas + descuentosFinancierosVentas;
+    ventasNacionales + ventasExportaciones + ventasServicios + ventasViventta + ventasMP + devolucionesVentas + descuentosFinancierosVentas;
 
-  const costoViventta = g("s_61359505");
+  const costoViventta = esViventta ? g("s_61359505") : 0;
   const costoFirplak = g("s_61") - costoViventta;
   const costosProductosVendidos = g("s_61");
   const descuentosFinancierosAprovechados = g("s_42104005");
@@ -249,8 +255,8 @@ export async function getEstadoResultadosAcumulado(cur: Period, empresa: Empresa
   const prev: Period = { anio: cur.anio - 1, mes: cur.mes };
   const row = await cargarValores(cur, prev, empresa);
 
-  const actual = computeFrom(row, "cur");
-  const anterior = computeFrom(row, "prev");
+  const actual = computeFrom(row, "cur", empresa);
+  const anterior = computeFrom(row, "prev", empresa);
 
   const filas: FilaResultadoAcumulado[] = [
     fila("Ventas Netas", actual.totalVentasNetas, anterior.totalVentasNetas),
