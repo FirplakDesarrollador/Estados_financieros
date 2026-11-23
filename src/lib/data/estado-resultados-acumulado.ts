@@ -104,7 +104,10 @@ function computeFrom(row: Raw, suffix: "cur" | "prev") {
 
   const ventasNacionales = (g("s_41203205") + g("s_41209505") + g("s_41209510") + g("s_41359505") + g("s_41209520") + g("s_41203240")) * -1;
   const ventasExportaciones = (g("s_41203215") + g("s_41203245") + g("s_41209515") + g("s_41359515") + g("s_42050510") + g("s_42050520")) * -1;
-  const ventasServicios = (g("s_42356505") + g("s_42356510") + g("s_42356515")) * -1;
+  const viventta505 = g("s_42356505") * -1;
+  const viventta510 = g("s_42356510") * -1;
+  const viventta515 = g("s_42356515") * -1;
+  const ventasServicios = viventta505 + viventta510 + viventta515;
   const ventasMP = (g("s_42050505") + g("s_42050515") + g("s_42054505")) * -1;
   const devolucionesVentas = (g("s_4175") + g("s_4275") - (g("s_42750510") - g("s_42750520"))) * -1;
   const descuentosFinancierosVentas = g("s_53053505") * -1;
@@ -165,6 +168,7 @@ function computeFrom(row: Raw, suffix: "cur" | "prev") {
     provisionImpuestoRenta, utilidadPeriodo,
     ventasNacionales, ventasExportaciones, ventasServicios, ventasMP,
     devolucionesVentas, descuentosFinancierosVentas,
+    viventta505, viventta510, viventta515,
     costosProductosVendidos, descuentosFinancierosAprovechados,
     gastosAdministracion, gastosVentasBruto, descuentosCom,
     ingrIntereses, ingrDifCambio, ingrCoberturaTC, ingrArrendamientos, ingrComisiones,
@@ -183,6 +187,7 @@ export type FilaResultadoAcumulado = {
   variacion: number;
   porcentajeVariacion: number | null;
   destacado?: boolean;
+  sectionHeader?: string;
 };
 
 export type EstadoResultadosAcumulado = {
@@ -258,9 +263,11 @@ export async function getEstadoResultadosAcumulado(cur: Period, empresa: Empresa
     ventasNetas: [
       fila("Ventas Nacionales", actual.ventasNacionales, anterior.ventasNacionales),
       fila("Ventas Exportaciones", actual.ventasExportaciones, anterior.ventasExportaciones),
-      fila("Ventas Servicios", actual.ventasServicios, anterior.ventasServicios),
       fila("Ventas Materia Prima", actual.ventasMP, anterior.ventasMP),
-      fila("Devoluciones en Ventas", actual.devolucionesVentas, anterior.devolucionesVentas),
+      { ...fila("Cta. 42356505", actual.viventta505, anterior.viventta505), sectionHeader: "Viventta" },
+      fila("Cta. 42356510", actual.viventta510, anterior.viventta510),
+      fila("Cta. 42356515", actual.viventta515, anterior.viventta515),
+      { ...fila("Devoluciones en Ventas", actual.devolucionesVentas, anterior.devolucionesVentas), sectionHeader: "Devoluciones Viventta" },
       fila("Descuentos Financieros", actual.descuentosFinancierosVentas, anterior.descuentosFinancierosVentas),
       fila("Total Ventas Netas", actual.totalVentasNetas, anterior.totalVentasNetas, true),
     ],
