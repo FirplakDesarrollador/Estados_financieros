@@ -24,7 +24,7 @@ function pct(valor: number, base: number): string {
 }
 
 // Detalle de Ut. Operacional: Ut. Bruta Vtas | Gtos Operativos | Ut. Operacional
-export function DetalleUtOperacionalTable({ data }: { data: EstadoResultadosMensual }) {
+export function DetalleUtOperacionalTable({ data, empresa = "firplak" }: { data: EstadoResultadosMensual; empresa?: string }) {
   const actualLabel = nombreMes(data.periodoActual.mes).toUpperCase();
   const anteriorLabel = nombreMes(data.periodoAnterior.mes).toUpperCase();
   const { anio, mes } = data.periodoActual;
@@ -90,7 +90,7 @@ export function DetalleUtOperacionalTable({ data }: { data: EstadoResultadosMens
                 <td className="py-1">
                   {slug && (
                     <Link
-                      href={`/detalle/resultado-mensual/${slug}?anio=${anio}&mes=${mes}`}
+                      href={`/detalle/resultado-mensual/${slug}?anio=${anio}&mes=${mes}&empresa=${empresa}`}
                       className="block w-full rounded-md border border-slate-300 px-3 py-2 text-center text-xs text-slate-600 hover:border-slate-400 hover:text-slate-900"
                     >
                       Detalle

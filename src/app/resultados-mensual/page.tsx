@@ -41,7 +41,7 @@ export default async function ResultadosMensualPage({
       empresa={empresa}
     >
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm mb-4">
-        <EstadoResultadoMensualTable data={data} />
+        <EstadoResultadoMensualTable data={data} empresa={empresa} />
       </div>
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">

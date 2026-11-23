@@ -7,10 +7,11 @@ import { nombreMes } from "@/lib/format";
 export default async function DetalleVentasNetasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ anio?: string; mes?: string }>;
+  searchParams: Promise<{ anio?: string; mes?: string; empresa?: string }>;
 }) {
   const params = await searchParams;
-  const periodos = await getPeriodosDisponibles();
+  const empresa = params.empresa ?? "firplak";
+  const periodos = await getPeriodosDisponibles(empresa);
   const latest = periodos[0] ?? { anio: new Date().getFullYear(), mes: new Date().getMonth() + 1 };
 
   const actual = {
@@ -18,7 +19,7 @@ export default async function DetalleVentasNetasPage({
     mes: params.mes ? Number(params.mes) : latest.mes,
   };
 
-  const data = await getEstadoResultadosMensual(actual);
+  const data = await getEstadoResultadosMensual(actual, empresa);
   const { periodoActual, periodoAnterior } = data;
 
   return (
@@ -26,7 +27,7 @@ export default async function DetalleVentasNetasPage({
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-8 py-4">
         <h1 className="text-sm font-semibold text-slate-500">Estados Financieros</h1>
         <Link
-          href={`/detalle/resultado-mensual/utilidad-bruta?anio=${periodoActual.anio}&mes=${periodoActual.mes}`}
+          href={`/detalle/resultado-mensual/utilidad-bruta?anio=${periodoActual.anio}&mes=${periodoActual.mes}&empresa=${empresa}`}
           className="text-sm text-slate-500 hover:text-slate-800"
         >
           ← Volver al Detalle Ut. Bruta en Ventas

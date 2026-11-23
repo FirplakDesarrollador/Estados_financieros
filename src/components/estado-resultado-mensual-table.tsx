@@ -19,7 +19,7 @@ function pct(valor: number, base: number): string {
   return formatPorcentaje(valor / base);
 }
 
-export function EstadoResultadoMensualTable({ data }: { data: EstadoResultadosMensual }) {
+export function EstadoResultadoMensualTable({ data, empresa = "firplak" }: { data: EstadoResultadosMensual; empresa?: string }) {
   const actualLabel = nombreMes(data.periodoActual.mes).toUpperCase();
   const anteriorLabel = nombreMes(data.periodoAnterior.mes).toUpperCase();
 
@@ -73,7 +73,7 @@ export function EstadoResultadoMensualTable({ data }: { data: EstadoResultadosMe
               <td className="py-1">
                 {fila.label === "Utilidad Antes de Impuesto" && (
                   <Link
-                    href={`/detalle/resultado-mensual?anio=${data.periodoActual.anio}&mes=${data.periodoActual.mes}`}
+                    href={`/detalle/resultado-mensual?anio=${data.periodoActual.anio}&mes=${data.periodoActual.mes}&empresa=${empresa}`}
                     className="block w-full rounded-md border border-slate-300 px-3 py-2 text-center text-xs text-slate-600 hover:border-slate-400 hover:text-slate-900"
                   >
                     Detalle

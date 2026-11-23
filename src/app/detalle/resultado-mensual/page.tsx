@@ -7,18 +7,19 @@ import { nombreMes } from "@/lib/format";
 export default async function DetalleResultadoMensualPage({
   searchParams,
 }: {
-  searchParams: Promise<{ anio?: string; mes?: string }>;
+  searchParams: Promise<{ anio?: string; mes?: string; empresa?: string }>;
 }) {
   const params = await searchParams;
   const now = new Date();
+  const empresa = params.empresa ?? "firplak";
   const paramsActual = params.anio && params.mes
     ? { anio: Number(params.anio), mes: Number(params.mes) }
     : null;
 
-  const periodosPromise = getPeriodosDisponibles();
+  const periodosPromise = getPeriodosDisponibles(empresa);
   const dataPromise = paramsActual
-    ? getEstadoResultadosMensual(paramsActual)
-    : periodosPromise.then((p) => getEstadoResultadosMensual(p[0] ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 }));
+    ? getEstadoResultadosMensual(paramsActual, empresa)
+    : periodosPromise.then((p) => getEstadoResultadosMensual(p[0] ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 }, empresa));
 
   const [, data] = await Promise.all([periodosPromise, dataPromise]);
   const actual = paramsActual ?? { anio: now.getFullYear(), mes: now.getMonth() + 1 };
@@ -29,7 +30,7 @@ export default async function DetalleResultadoMensualPage({
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-8 py-4">
         <h1 className="text-sm font-semibold text-slate-500">Estados Financieros</h1>
         <Link
-          href={`/resultados-mensual?anio=${periodoActual.anio}&mes=${periodoActual.mes}`}
+          href={`/resultados-mensual?anio=${periodoActual.anio}&mes=${periodoActual.mes}&empresa=${empresa}`}
           className="text-sm text-slate-500 hover:text-slate-800"
         >
           ← Volver al Estado de Resultados Mensual
@@ -46,7 +47,7 @@ export default async function DetalleResultadoMensualPage({
         </p>
 
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <DetalleResultadoMensualTable data={data} />
+          <DetalleResultadoMensualTable data={data} empresa={empresa} />
         </div>
       </main>
     </div>
