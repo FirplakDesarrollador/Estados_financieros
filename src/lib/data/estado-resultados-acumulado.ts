@@ -24,6 +24,8 @@ const specs: RawSpec[] = [
   { key: "s_42050510", where: "account = '42050510'" },
   { key: "s_42050520", where: "account = '42050520'" },
   { key: "s_42356505", where: "account = '42356505'" },
+  { key: "s_42356510", where: "account = '42356510'" },
+  { key: "s_42356515", where: "account = '42356515'" },
   { key: "s_42050505", where: "account = '42050505'" },
   { key: "s_42050515", where: "account = '42050515'" },
   { key: "s_42054505", where: "account = '42054505'" },
@@ -102,7 +104,7 @@ function computeFrom(row: Raw, suffix: "cur" | "prev") {
 
   const ventasNacionales = (g("s_41203205") + g("s_41209505") + g("s_41209510") + g("s_41359505") + g("s_41209520") + g("s_41203240")) * -1;
   const ventasExportaciones = (g("s_41203215") + g("s_41203245") + g("s_41209515") + g("s_41359515") + g("s_42050510") + g("s_42050520")) * -1;
-  const ventasServicios = g("s_42356505") * -1;
+  const ventasServicios = (g("s_42356505") + g("s_42356510") + g("s_42356515")) * -1;
   const ventasMP = (g("s_42050505") + g("s_42050515") + g("s_42054505")) * -1;
   const devolucionesVentas = (g("s_4175") + g("s_4275") - (g("s_42750510") - g("s_42750520"))) * -1;
   const descuentosFinancierosVentas = g("s_53053505") * -1;
