@@ -145,7 +145,10 @@ function computeFrom(row: Raw, suffix: "cur" | "prev", empresa: EmpresaId) {
   const gastosVentasBruto = g("s_52");
   const gastosVentasFirplak = esViventta ? 0 : gastosVentasBruto;
   const gastosVentasViventta = esViventta ? gastosVentasBruto : 0;
-  const descuentosCom = -g("s_52991090");
+  // La cuenta 52991090 (provisión por deterioro de cartera) ya queda capturada en
+  // Provisión Cartera e Inventarios (Gastos No Operativos); en el acumulado no se
+  // reclasifica aparte, para no restarla dos veces.
+  const descuentosCom = 0;
   const gastosVentas = gastosVentasBruto + descuentosCom;
   const gastosOperativos = gastosAdministracion + gastosVentas;
 
@@ -175,7 +178,9 @@ function computeFrom(row: Raw, suffix: "cur" | "prev", empresa: EmpresaId) {
   const perdidaRetiroBienes = g("s_5310");
   const impuestosAsumidos = g("s_5315");
   const gastosExtraordinarios = g("s_53950505") + g("s_53951505") + g("s_53952005") + g("s_53952505") + g("s_53959505");
-  const provisionCartera = g("s_5199") + g("s_5299");
+  // 52991090 se queda en Gastos de Ventas (no se reclasifica), así que se excluye aquí
+  // para no contarla dos veces.
+  const provisionCartera = g("s_5199") + g("s_5299") - g("s_52991090");
   const gastosNoOperativos =
     gastosBancarios + gastosComisiones + gastosIntereses + gastosDifCambio + otrosGastosFinancieros +
     perdidaRetiroBienes + contribucion4x1000 + impuestosAsumidos + gastosExtraordinarios + provisionCartera;
