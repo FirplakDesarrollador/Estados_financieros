@@ -17,6 +17,7 @@ const specs: RawSpec[] = [
   { key: "s_41359505", where: "account = '41359505'" },
   { key: "s_41209520", where: "account = '41209520'" },
   { key: "s_41203240", where: "account = '41203240'" }, // cuenta adicional en grupo 412032
+  { key: "s_41209535", where: "account = '41209535'" }, // Ventas Exentas Zonas Francas
   { key: "s_41203215", where: "account = '41203215'" },
   { key: "s_41203245", where: "account = '41203245'" }, // cuenta adicional en grupo 412032
   { key: "s_41209515", where: "account = '41209515'" },
@@ -113,7 +114,7 @@ function computeFrom(row: Raw, suffix: "cur" | "prev", empresa: EmpresaId) {
   const esViventta = empresa === "empresa2";
 
   // Ventas Netas
-  const ventasNacionales = (g("s_41203205") + g("s_41209505") + g("s_41209510") + g("s_41359505") + g("s_41209520") + g("s_41203240")) * -1;
+  const ventasNacionales = (g("s_41203205") + g("s_41209505") + g("s_41209510") + g("s_41359505") + g("s_41209520") + g("s_41203240") + g("s_41209535")) * -1;
   const ventasExportaciones = (g("s_41203215") + g("s_41203245") + g("s_41209515") + g("s_41359515") + g("s_42050510") + g("s_42050520")) * -1;
   const ventasViventtaRaw = (g("s_42356505") + g("s_42356510") + g("s_42356515")) * -1;
   const ventasViventta = esViventta ? ventasViventtaRaw : 0;
