@@ -142,19 +142,16 @@ function computeFrom(row: Raw, suffix: "cur" | "prev", empresa: EmpresaId) {
   const utilidadBrutaVentas = totalVentasNetas - totalCostoVentas;
 
   // Gastos Operativos
-  // No se reclasifica Contribución 4x1000 ni Traslado a Costos: Administración y Ventas
-  // quedan directo sobre el saldo de las cuentas 51 y 52. Confirmado contra la referencia
-  // del usuario: en abril (y por extensión, de forma consistente con el acumulado) estos
-  // montos no se mueven entre renglones — la reclasificación de enero no era una regla fija.
-  const contribucion4x1000 = 0;
-  const gastosAdministracion = g("s_51") - g("s_5199");
+  // Firplak: Administración excluye las dos mitades del 4x1000 (van a Gastos No Operativos)
+  // y las provisiones 5199 y 5299 (van a Provisión Cartera). Viventta: sin exclusiones.
+  const contribucion4x1000 = esViventta ? 0 : g("s_51159510") + g("s_51159515");
+  const provisionesExcluidas = esViventta ? 0 : g("s_5199") + g("s_5299");
+  const gastosAdministracion = g("s_51") - contribucion4x1000 - provisionesExcluidas;
   const gastosAdministracionFirplak = esViventta ? 0 : gastosAdministracion;
   const gastosAdministracionViventta = esViventta ? gastosAdministracion : 0;
   const gastosVentasBruto = g("s_52");
   const gastosVentasFirplak = esViventta ? 0 : gastosVentasBruto;
   const gastosVentasViventta = esViventta ? gastosVentasBruto : 0;
-  // 52991090 (provisión por deterioro de cartera) ya se captura en Provisión Cartera e
-  // Inventarios (Gastos No Operativos); no se resta aparte para no contarla dos veces.
   const descuentosCom = 0;
   const gastosVentas = gastosVentasBruto + descuentosCom;
   const gastosOperativos = gastosAdministracion + gastosVentas;
@@ -187,9 +184,7 @@ function computeFrom(row: Raw, suffix: "cur" | "prev", empresa: EmpresaId) {
   const perdidaRetiroBienes = g("s_5310");
   const impuestosAsumidos = g("s_5315");
   const gastosExtraordinarios = g("s_53950505") + g("s_53951505") + g("s_53952005") + g("s_53952505") + g("s_53959505");
-  // 52991090 se queda en Gastos de Ventas (no se reclasifica), así que se excluye aquí
-  // para no contarla dos veces.
-  const provisionCartera = g("s_5199") + g("s_5299") - g("s_52991090");
+  const provisionCartera = provisionesExcluidas;
   const gastosNoOperativos =
     gastosBancarios + gastosComisiones + gastosIntereses + gastosDifCambio + otrosGastosFinancieros +
     perdidaRetiroBienes + contribucion4x1000 + impuestosAsumidos + gastosExtraordinarios + provisionCartera;
