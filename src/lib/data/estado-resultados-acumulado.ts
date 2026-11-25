@@ -134,17 +134,15 @@ function computeFrom(row: Raw, suffix: "cur" | "prev", empresa: EmpresaId) {
 
   const utilidadBrutaVentas = totalVentasNetas - totalCostoVentas;
 
-  // Contribución 4x1000: solo la mitad deducible (51159510) se reclasifica a Gastos No
-  // Operativos; la no deducible (51159515) queda dentro de Administración. Solo aplica a
-  // Firplak — en Viventta ningún valor del 4x1000 se saca de Administración.
-  const contribucion4x1000 = esViventta ? 0 : g("s_51159510");
-  // Traslado a Costos (52059595): en Viventta queda contabilizado dentro de Ventas, pero
-  // debe reclasificarse a Administración.
-  const trasladoVentasACostos = g("s_52059595");
-  const gastosAdministracion = g("s_51") - contribucion4x1000 - g("s_5199") + trasladoVentasACostos;
+  // A diferencia del mensual, en el acumulado NO se reclasifica la Contribución 4x1000 ni
+  // el Traslado a Costos: Administración y Ventas quedan directo sobre el saldo de las
+  // cuentas 51 y 52. Verificado contra la referencia del usuario (abril 2026): Administración
+  // Viventta, Ventas Viventta y Ventas Firplak cuadran exacto así.
+  const contribucion4x1000 = 0;
+  const gastosAdministracion = g("s_51") - g("s_5199");
   const gastosAdministracionFirplak = esViventta ? 0 : gastosAdministracion;
   const gastosAdministracionViventta = esViventta ? gastosAdministracion : 0;
-  const gastosVentasBruto = g("s_52") - trasladoVentasACostos;
+  const gastosVentasBruto = g("s_52");
   const gastosVentasFirplak = esViventta ? 0 : gastosVentasBruto;
   const gastosVentasViventta = esViventta ? gastosVentasBruto : 0;
   const descuentosCom = -g("s_52991090");
