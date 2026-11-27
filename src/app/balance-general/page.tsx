@@ -1,7 +1,7 @@
 import { getBalanceGeneral } from "@/lib/data/balance-general";
 import { getPeriodosDisponibles } from "@/lib/data/estado-costo-mensual";
 import { DEFAULT_EMPRESA } from "@/lib/companies";
-import { BalanceGeneralTable } from "@/components/balance-general-table";
+import { SituacionFinancieraTable } from "@/components/situacion-financiera-table";
 import { PageShell } from "@/components/page-shell";
 import { ComparativoBarChart } from "@/components/charts/comparativo-bar-chart";
 
@@ -63,20 +63,13 @@ export default async function BalanceGeneralPage({
           />
         </div>
       </div>
-      <div className="space-y-4">
-        <BalanceGeneralTable
-          title="Activos"
-          filas={data.activos}
-          anioActual={data.periodoActual.anio}
-          anioAnterior={data.periodoAnterior.anio}
-        />
-        <BalanceGeneralTable
-          title="Pasivos y Patrimonio"
-          filas={data.pasivosPatrimonio}
-          anioActual={data.periodoActual.anio}
-          anioAnterior={data.periodoAnterior.anio}
-        />
-      </div>
+      <SituacionFinancieraTable
+        activos={data.detalleActivos}
+        pasivosPatrimonio={data.detallePasivosPatrimonio}
+        mes={data.periodoActual.mes}
+        anioActual={data.periodoActual.anio}
+        anioAnterior={data.periodoAnterior.anio}
+      />
     </PageShell>
   );
 }

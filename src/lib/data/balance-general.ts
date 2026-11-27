@@ -167,6 +167,48 @@ function computeFrom(row: Raw, suffix: "cur" | "prev", mes: number) {
   const totalPatrimonio = capitalSocial + reservasObligatorias + utilidadEjercicio + utilidadesAcumuladas;
 
   return {
+    // Detalle (Estado de Situación Financiera)
+    caja: g("s_1105"),
+    bancos: g("s_1110"),
+    derechosFiduciarios: g("s_1245"),
+    cdt: g("s_1225"),
+    otrasInversiones: g("s_1295"),
+    clientesNacionales,
+    clientesExterior,
+    anticipoImpuestos: g("s_1355"),
+    cxcTrabajadores: g("s_1365"),
+    deudoresVarios: g("s_1380"),
+    deterioroCartera,
+    materiasPrimas,
+    productoProceso,
+    productosTerminados,
+    merciasNoFabricadas,
+    inventarioTransito,
+    deterioroInventarios,
+    activosNoFinancieros: g("s_1330"),
+    intangibles: g("s_16") + g("s_1710"),
+    cxcSocios: g("s_1325"),
+    obligacionesFinancieras,
+    obligacionesForward,
+    proveedoresNacionales,
+    proveedoresExterior,
+    costosGastosPorPagar,
+    deudaSocios,
+    dividendos,
+    retencionFuente,
+    retencionIva,
+    retencionIca,
+    retencionesNomina,
+    impuestoVentasPorPagar,
+    impuestoRenta,
+    obligacionesLaborales,
+    pasivosEstimadosLaborales,
+    pasivosEstimadosDiversos,
+    anticiposAvances,
+    obligacionesFinancierasLargoPlazo,
+    leasingInmobiliario,
+    pasivoImpuestoDiferido,
+    // Resumen
     efectivo,
     activosFinancieros,
     inventarios,
@@ -195,11 +237,29 @@ export type FilaBalance = {
   destacado?: boolean;
 };
 
+// Fila del Estado de Situación Financiera detallado.
+//   seccion   → título de sección sin valores (ACTIVO, CORRIENTE, PASIVO NO CORRIENTE…)
+//   grupo     → subtotal de un grupo (Efectivo y equivalentes, Inventarios…)
+//   detalle   → cuenta que compone el grupo
+//   total     → TOTAL ACTIVO CORRIENTE, TOTAL PASIVO…
+//   granTotal → TOTAL ACTIVOS / TOTAL DEL PASIVO + PATRIMONIO
+//   espacio   → separador visual
+export type TipoFilaSF = "seccion" | "grupo" | "detalle" | "total" | "granTotal" | "espacio";
+
+export type FilaSF = FilaBalance & {
+  codigo?: string;
+  tipo: TipoFilaSF;
+  // Ocultar la fila cuando actual y anterior son 0 (cuentas que casi nunca tienen saldo).
+  ocultarSiCero?: boolean;
+};
+
 export type BalanceGeneral = {
   periodoActual: Period;
   periodoAnterior: Period;
   activos: FilaBalance[];
   pasivosPatrimonio: FilaBalance[];
+  detalleActivos: FilaSF[];
+  detallePasivosPatrimonio: FilaSF[];
 };
 
 function divide(a: number, b: number): number | null {
@@ -212,7 +272,7 @@ function fila(label: string, actual: number, anterior: number, destacado?: boole
 }
 
 function mergeBalance(a: BalanceGeneral, b: BalanceGeneral): BalanceGeneral {
-  const mergeFilas = (fa: FilaBalance[], fb: FilaBalance[]) =>
+  const mergeFilas = <T extends FilaBalance>(fa: T[], fb: T[]): T[] =>
     fa.map((f, i) => {
       const g = fb[i];
       const actual = f.actual + g.actual;
@@ -225,7 +285,109 @@ function mergeBalance(a: BalanceGeneral, b: BalanceGeneral): BalanceGeneral {
     periodoAnterior: a.periodoAnterior,
     activos: mergeFilas(a.activos, b.activos),
     pasivosPatrimonio: mergeFilas(a.pasivosPatrimonio, b.pasivosPatrimonio),
+    detalleActivos: mergeFilas(a.detalleActivos, b.detalleActivos),
+    detallePasivosPatrimonio: mergeFilas(a.detallePasivosPatrimonio, b.detallePasivosPatrimonio),
   };
+}
+
+type Valores = ReturnType<typeof computeFrom>;
+
+function construirDetalle(actual: Valores, anterior: Valores) {
+  const v = (tipo: TipoFilaSF, codigo: string | undefined, label: string, key: keyof Valores, ocultarSiCero?: boolean): FilaSF => ({
+    ...fila(label, actual[key], anterior[key]),
+    codigo,
+    tipo,
+    ocultarSiCero,
+  });
+  const sec = (label: string): FilaSF => ({ label, actual: 0, anterior: 0, variacion: 0, porcentajeVariacion: null, tipo: "seccion" });
+  const esp = (): FilaSF => ({ label: "", actual: 0, anterior: 0, variacion: 0, porcentajeVariacion: null, tipo: "espacio" });
+
+  const detalleActivos: FilaSF[] = [
+    sec("ACTIVO"),
+    sec("CORRIENTE"),
+    v("grupo", "11", "Efectivo y equivalentes", "efectivo"),
+    v("detalle", "1105", "Caja", "caja"),
+    v("detalle", "1110", "Bancos", "bancos"),
+    v("detalle", "1245", "Derechos fiduciarios", "derechosFiduciarios"),
+    v("detalle", "1225", "CDT", "cdt"),
+    v("detalle", "1295", "Otras inversiones", "otrasInversiones", true),
+    esp(),
+    v("grupo", "13", "Activos financieros", "activosFinancieros"),
+    v("detalle", "1305", "Clientes nacionales", "clientesNacionales"),
+    v("detalle", "1305", "Clientes del exterior", "clientesExterior"),
+    v("detalle", "1355", "Anticipo de impuestos", "anticipoImpuestos"),
+    v("detalle", "1365", "Cuentas por cobrar trabajadores", "cxcTrabajadores"),
+    v("detalle", "1380", "Deudores varios", "deudoresVarios"),
+    v("detalle", "1399", "Menos: deterioro cartera", "deterioroCartera"),
+    esp(),
+    v("grupo", "14", "Inventarios", "inventarios"),
+    v("detalle", "1405", "Materias primas", "materiasPrimas"),
+    v("detalle", "1410", "Productos en proceso", "productoProceso"),
+    v("detalle", "1430", "Productos terminados", "productosTerminados"),
+    v("detalle", "1435", "Productos o mercancía no fabricada por la empresa", "merciasNoFabricadas"),
+    v("detalle", "1465", "Inventarios en tránsito", "inventarioTransito"),
+    v("detalle", "14", "Deterioro", "deterioroInventarios"),
+    esp(),
+    v("grupo", "1705", "Gastos pagados por anticipado", "gastosPagadosAnticipado"),
+    esp(),
+    v("total", undefined, "TOTAL ACTIVO CORRIENTE", "totalActivoCorriente"),
+    esp(),
+    v("grupo", "15", "Propiedad, planta y equipo", "ppe"),
+    esp(),
+    v("grupo", undefined, "Otros Activos", "otrosActivos"),
+    v("detalle", "1330", "Activos no financieros/anticipos", "activosNoFinancieros"),
+    v("detalle", "16", "Intangibles/licencias", "intangibles"),
+    v("detalle", "1325", "Cuentas por cobrar Socios", "cxcSocios"),
+    esp(),
+    v("granTotal", undefined, "TOTAL ACTIVOS", "totalActivos"),
+  ];
+
+  const detallePasivosPatrimonio: FilaSF[] = [
+    sec("PASIVO"),
+    sec("CORRIENTE"),
+    v("detalle", "2105", "Obligaciones financieras", "obligacionesFinancieras"),
+    v("detalle", "2195", "Obligación forward", "obligacionesForward"),
+    v("detalle", "2205", "Proveedores nacionales", "proveedoresNacionales"),
+    v("detalle", "2210", "Proveedores del exterior", "proveedoresExterior"),
+    v("detalle", "2335", "Costos y gastos por pagar", "costosGastosPorPagar"),
+    v("detalle", "2355", "Deuda Socios", "deudaSocios"),
+    v("detalle", "2360", "Dividendos", "dividendos"),
+    v("detalle", "2365", "Retención en la fuente", "retencionFuente"),
+    v("detalle", "2367", "Retención por impuesto a las ventas", "retencionIva"),
+    v("detalle", "2368", "Retención por industria y comercio", "retencionIca"),
+    v("detalle", "2370-2380", "Retenciones y aportes de nómina", "retencionesNomina"),
+    v("detalle", "2408", "Impuesto sobre las ventas por pagar", "impuestoVentasPorPagar"),
+    v("detalle", "2404", "Impuesto de renta", "impuestoRenta"),
+    v("detalle", "25", "Obligaciones laborales", "obligacionesLaborales"),
+    v("detalle", "2610", "Pasivos estimados laborales", "pasivosEstimadosLaborales"),
+    v("detalle", "2605", "Pasivos estimados diversos", "pasivosEstimadosDiversos"),
+    v("detalle", "2805", "Anticipos y avances", "anticiposAvances"),
+    esp(),
+    v("total", undefined, "TOTAL PASIVO CORRIENTE", "totalPasivoCorriente"),
+    esp(),
+    sec("PASIVO NO CORRIENTE"),
+    v("detalle", "2105", "Obligaciones financieras", "obligacionesFinancierasLargoPlazo"),
+    v("detalle", "21", "Leasing inmobiliario", "leasingInmobiliario"),
+    v("detalle", "27", "Pasivo por impuesto diferido", "pasivoImpuestoDiferido"),
+    v("total", undefined, "TOTAL PASIVO NO CORRIENTE", "totalPasivoNoCorriente"),
+    esp(),
+    v("total", undefined, "TOTAL PASIVO", "totalPasivos"),
+    esp(),
+    sec("PATRIMONIO"),
+    v("detalle", "3105", "Capital social", "capitalSocial"),
+    v("detalle", "3305", "Reservas obligatorias", "reservasObligatorias"),
+    v("detalle", "36-37", "Utilidad (-)Pérdida del ejercicio", "utilidadEjercicio"),
+    v("detalle", "3705", "Utilidades acumuladas", "utilidadesAcumuladas"),
+    esp(),
+    v("total", undefined, "TOTAL PATRIMONIO", "totalPatrimonio"),
+    esp(),
+    {
+      ...fila("TOTAL DEL PASIVO + PATRIMONIO", actual.totalPasivos + actual.totalPatrimonio, anterior.totalPasivos + anterior.totalPatrimonio),
+      tipo: "granTotal",
+    },
+  ];
+
+  return { detalleActivos, detallePasivosPatrimonio };
 }
 
 export async function getBalanceGeneral(cur: Period, empresa: EmpresaId = DEFAULT_EMPRESA): Promise<BalanceGeneral> {
@@ -253,5 +415,5 @@ export async function getBalanceGeneral(cur: Period, empresa: EmpresaId = DEFAUL
     fila("Pasivo + Patrimonio", actual.totalPasivos + actual.totalPatrimonio, anterior.totalPasivos + anterior.totalPatrimonio, true),
   ];
 
-  return { periodoActual: cur, periodoAnterior: prevYear, activos, pasivosPatrimonio };
+  return { periodoActual: cur, periodoAnterior: prevYear, activos, pasivosPatrimonio, ...construirDetalle(actual, anterior) };
 }
