@@ -3,8 +3,7 @@ const SECCIONES = [
   { href: "/costo-acumulado", label: "Estado del Costo Acumulado", ready: true },
   { href: "/resultados-mensual", label: "Estado de Resultados Mensual", ready: true },
   { href: "/resultados-acumulado", label: "Estado de Resultados Acumulado", ready: true },
-  { href: "/balance-activos", label: "Balance General Activos", ready: true },
-  { href: "/balance-pasivos", label: "Balance General Pasivos y Patrimonio", ready: true },
+  { href: "/balance-general", label: "Balance General", ready: true },
   { href: "/cambios-patrimonio", label: "Estado de Cambios en el Patrimonio", ready: true },
 ];
 
