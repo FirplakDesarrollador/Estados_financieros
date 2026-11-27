@@ -4,7 +4,7 @@ import { formatPorcentaje, nombreMes } from "@/lib/format";
 // Valores en miles de pesos, sin símbolo (formato de estado financiero).
 function miles(value: number): string {
   const scaled = Math.round(value / 1000);
-  return scaled.toLocaleString("es-CO");
+  return (scaled === 0 ? 0 : scaled).toLocaleString("es-CO"); // evita "-0"
 }
 
 const VACIA: FilaSF = { label: "", actual: 0, anterior: 0, variacion: 0, porcentajeVariacion: null, tipo: "espacio" };
@@ -117,10 +117,10 @@ export function SituacionFinancieraTable({
   const nombre = nombreMes(mes);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <p className="mb-3 text-[11px] text-slate-400">Cifras en miles de pesos</p>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1100px] border-collapse">
+        <table className="w-full min-w-[1000px] border-collapse">
           <thead>
             <tr className="align-bottom">
               <Encabezado mes={nombre} anioActual={anioActual} anioAnterior={anioAnterior} lado="izq" />

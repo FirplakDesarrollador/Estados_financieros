@@ -15,8 +15,11 @@ export function PageShell({
   actual,
   empresa,
   backHref,
+  ancho = false,
   children,
 }: {
+  // Páginas con tablas anchas (p. ej. Situación Financiera lado a lado) usan casi todo el ancho de pantalla.
+  ancho?: boolean;
   current: string;
   titulo: string;
   subtitulo?: string;
@@ -39,7 +42,7 @@ export function PageShell({
 
       <MainNav current={current} anio={actual.anio} mes={actual.mes} empresa={empresa} />
 
-      <main className="mx-auto max-w-6xl px-8 py-10">
+      <main className={`mx-auto ${ancho ? "max-w-[1800px] px-4 lg:px-6" : "max-w-6xl px-8"} py-10`}>
         {backHref && (
           <Link
             href={backHref}

@@ -36,6 +36,7 @@ export default async function BalanceGeneralPage({
       periodos={periodos}
       actual={actual}
       empresa={empresa}
+      ancho
     >
       <div className="grid gap-4 lg:grid-cols-2 mb-4">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
