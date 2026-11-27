@@ -31,7 +31,7 @@ export default async function BalanceGeneralPage({
   return (
     <PageShell
       current="/balance-general"
-      titulo="Balance General"
+      titulo="Situación Financiera"
       subtitulo={`Activos, Pasivos y Patrimonio — comparativo contra ${data.periodoAnterior.anio}`}
       periodos={periodos}
       actual={actual}
